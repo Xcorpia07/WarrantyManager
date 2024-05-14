@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "624403813333",
+    "project_id": "warrantymanager-kt",
+    "storage_bucket": "warrantymanager-kt.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:624403813333:android:5a0fa5b09e31327c0b635c",
+        "android_client_info": {
+          "package_name": "com.warrantymanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "624403813333-jpn4u3kepsdn00a1cf7ig1bmdqjl93rp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrNIEJvFQPfvAKQaxVR79ZUKFC4C5DXGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "624403813333-jpn4u3kepsdn00a1cf7ig1bmdqjl93rp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,37 @@
+<resources>
+    //MainActivity
+    <string name="welcome">Bienvenido!</string>
+    <string name="logout">Desconectate</string>
+    <string name="invoices">Recibos de Compra</string>
+
+    //LoginActivity
+    <string name="app_name">WarrantyManager</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="register_text">¿No tienes cuenta? <u>Regístrate</u></string>
+
+    <string name="error_authentication_failed">Autenticación fallida.</string>
+    <string name="error_enter_email_password">Por favor, introduce el correo electrónico y la contraseña.</string>
+
+
+    //RegisterActivity
+    <string name="register_title">Registro de Usuario</string>
+    <string name="name_hint">Nombre de Usuario</string>
+    <string name="confirm_password_hint">Confirmar Contraseña</string>
+    <string name="register_button">Registrarse</string>
+
+    <string name="error_empty_name">Ingrese un nombre de usuario</string>
+    <string name="error_empty_email">Ingrese un correo electrónico</string>
+    <string name="error_empty_password">Ingrese una contraseña</string>
+    <string name="error_empty_confirm_password">Confirme la contraseña</string>
+    <string name="error_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="error_registration_failed">Registro fallido: %1$s</string>
+    <string name="error_unknown">Error desconocido.</string>
+
+    //InvoicesActivity
+    <string name="invoices_title">Recibos de Compra</string>
+
+    invoices_title
+
+</resources>
