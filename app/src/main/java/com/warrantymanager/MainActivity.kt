@@ -22,6 +22,9 @@ class MainActivity : AppCompatActivity() {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             binding.textViewUserEmail.text = currentUser.email
+        } else {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }
 
         binding.buttonLogout.setOnClickListener { logout() }
