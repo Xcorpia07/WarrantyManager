@@ -13,46 +13,56 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
+        <ImageView
+            android:id="@+id/imageViewCategory"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/ic_category" />
+
         <TextView
-            android:id="@+id/textViewProviderName"
+            android:id="@+id/textViewProductName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imageViewCategory"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Nombre del Proveedor" />
+            tools:text="Nombre del Producto" />
 
         <TextView
-            android:id="@+id/textViewAmount"
+            android:id="@+id/textViewPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewProviderName"
+            app:layout_constraintStart_toStartOf="@id/textViewProductName"
+            app:layout_constraintTop_toBottomOf="@id/textViewProductName"
             tools:text="$100.00" />
 
         <TextView
-            android:id="@+id/textViewDate"
+            android:id="@+id/textViewPurchaseDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewAmount"
+            app:layout_constraintStart_toStartOf="@id/textViewProductName"
+            app:layout_constraintTop_toBottomOf="@id/textViewPrice"
             tools:text="01/01/2023" />
 
-        <ImageView
-            android:id="@+id/imageViewInvoice"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:src="@tools:sample/avatars" />
+        <TextView
+            android:id="@+id/textViewWarrantyDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/textViewProductName"
+            app:layout_constraintTop_toBottomOf="@id/textViewPurchaseDate"
+            tools:text="01/07/2023" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

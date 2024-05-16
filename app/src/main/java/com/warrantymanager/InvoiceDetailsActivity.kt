@@ -8,6 +8,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.firestore.FirebaseFirestore
 import com.warrantymanager.databinding.ActivityInvoiceDetailsBinding
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class InvoiceDetailsActivity : AppCompatActivity() {
 
@@ -20,6 +22,7 @@ class InvoiceDetailsActivity : AppCompatActivity() {
 
         val invoicePath = intent.getStringExtra("invoicePath")!!
 
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
         val db = FirebaseFirestore.getInstance()
         val invoiceRef = db.document(invoicePath)
@@ -27,10 +30,12 @@ class InvoiceDetailsActivity : AppCompatActivity() {
             .addOnSuccessListener { documentSnapshot ->
                 val invoice = documentSnapshot.toObject(Invoice::class.java)
                 if (invoice != null) {
-                    binding.textViewProviderName.text = invoice.providerName
-                    binding.textViewAmount.text = "Amount: ${invoice.amount}"
-                    binding.textViewDate.text = "Date: ${invoice.date}"
-                    // Cargar la imagen de la factura usando Glide o Picasso
+                    binding.textViewManufacturer.text = invoice.manufacturer
+                    binding.textViewProductName.text = invoice.productName
+                    binding.textViewPrice.text = "Precio: ${invoice.price}"
+                    binding.textViewSupplier.text = invoice.supplier
+                    binding.textViewPurchaseDate.text = dateFormat.format(invoice.purchaseDate)
+                    binding.textViewWarrantyDate.text = dateFormat.format(invoice.warrantyDate)
                 }
             }
             .addOnFailureListener { exception ->

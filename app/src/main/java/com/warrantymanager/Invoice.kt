@@ -4,8 +4,11 @@ import java.util.Date
 
 data class Invoice(
     val id: String = "",
-    val providerName: String = "",
-    val amount: Double = 0.0,
-    val date: Date = Date(),
+    var manufacturer: String = "",
+    var productName: String = "",
+    var price: Double = 0.0,
+    var supplier: String = "",
+    var purchaseDate: Date = Date(),
+    var warrantyDate: Date = Date(),
     val imageUrl: String = ""
 )

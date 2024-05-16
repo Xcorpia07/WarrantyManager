@@ -34,4 +34,30 @@
 
     invoices_title
 
+    //AddInvoicesActivity
+    <string name="hint_manufacturer">Fabricante</string>
+    <string name="hint_product_name">Nombre del producto</string>
+    <string name="hint_price">Precio del producto</string>
+    <string name="hint_supplier">Proveedor</string>
+    <string name="text_purchase_date">Fecha de compra</string>
+
+    <string name="hint_warranty_period">Selecciona el período de garantía</string>
+    <string-array name="warranty_periods">
+        <item>6 meses</item>
+        <item>1 año</item>
+        <item>2 años</item>
+        <item>3 años</item>
+    </string-array>
+
+    <string name="button_attach_document">Adjuntar documento</string>
+    <string name="button_save_invoice">Guardar factura</string>
+
+    //InvoiceDetails
+    <string name="label_manufacturer">Fabricante:</string>
+    <string name="label_product_name">Nombre del producto:</string>
+    <string name="label_price">Precio:</string>
+    <string name="label_supplier">Proveedor:</string>
+    <string name="label_purchase_date">Fecha de compra:</string>
+    <string name="label_warranty_date">Fecha de garantía:</string>
+
 </resources>

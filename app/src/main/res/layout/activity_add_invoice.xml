@@ -1,43 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    tools:context=".AddInvoiceActivity">
+    android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/editTextProviderName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nombre del proveedor" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <EditText
-        android:id="@+id/editTextAmount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Precio"
-        android:inputType="numberDecimal" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_manufacturer">
 
-    <EditText
-        android:id="@+id/editTextDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Fecha (dd/mm/yyyy)"
-        android:inputType="text" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextManufacturer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-    <EditText
-        android:id="@+id/editTextImageUrl"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="URL de la imagen (opcional)" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-        android:id="@+id/buttonSaveInvoice"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Guardar factura" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_product_name">
 
-</LinearLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextProductName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_price">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_supplier">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextSupplier"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/textViewPurchaseDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="@string/text_purchase_date"
+            android:textSize="18sp" />
+
+        <Spinner
+            android:id="@+id/spinnerWarrantyPeriod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/warranty_periods"
+            android:padding="16dp"
+            android:prompt="@string/hint_warranty_period" />
+
+        <TextView
+            android:id="@+id/textViewWarrantyDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/buttonAttachDocument"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_attach_document" />
+
+        <Button
+            android:id="@+id/buttonSaveInvoice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="@string/button_save_invoice" />
+
+    </LinearLayout>
+
+</ScrollView>
+

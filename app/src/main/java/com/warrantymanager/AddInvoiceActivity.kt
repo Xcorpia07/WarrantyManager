@@ -1,7 +1,10 @@
 package com.warrantymanager
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -9,22 +12,39 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.warrantymanager.databinding.ActivityAddInvoiceBinding
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 class AddInvoiceActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddInvoiceBinding
-    private var selectedDate: Long = 0
+    private var selectedDate: Long = System.currentTimeMillis()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddInvoiceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.editTextDate.setOnClickListener{
+        binding.textViewPurchaseDate.setOnClickListener{
             showDatePicker()
         }
+
+        binding.spinnerWarrantyPeriod.prompt = getString(R.string.hint_warranty_period)
+        binding.spinnerWarrantyPeriod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateWarrantyDate(position)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // No se seleccionó ningún periodo de garantía
+            }
+        }
+
+        binding.buttonAttachDocument.setOnClickListener {
+            showAttachmentOptions()
+        }
+
         binding.buttonSaveInvoice.setOnClickListener {
             saveInvoice()
         }
@@ -40,10 +60,59 @@ class AddInvoiceActivity : AppCompatActivity() {
             selectedDate = selectedDateMillis
             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             val dateString = dateFormat.format(Date(selectedDateMillis))
-            binding.editTextDate.setText(dateString)
+            binding.textViewPurchaseDate.text = dateString
+            updateWarrantyDate(binding.spinnerWarrantyPeriod.selectedItemPosition)
         }
 
         datePicker.show(supportFragmentManager, "DatePicker")
+    }
+
+    private fun updateWarrantyDate(warrantyPeriodIndex: Int) {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = selectedDate
+
+        when (warrantyPeriodIndex) {
+            0 -> calendar.add(Calendar.MONTH, 6)
+            1 -> calendar.add(Calendar.YEAR, 1)
+            2 -> calendar.add(Calendar.YEAR, 2)
+            3 -> calendar.add(Calendar.YEAR, 3)
+        }
+
+        val warrantyDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val warrantyDateString = warrantyDateFormat.format(calendar.time)
+        binding.textViewWarrantyDate.text = "Fecha de garantía: $warrantyDateString"
+    }
+
+    private fun showAttachmentOptions() {
+        val options = arrayOf("Adjuntar archivo", "Adjuntar imagen", "Tomar foto")
+        AlertDialog.Builder(this)
+            .setTitle("Seleccionar opción")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> attachFile()
+                    1 -> attachImage()
+                    2 -> takePicture()
+                }
+            }
+            .show()
+    }
+
+    private fun attachFile() {
+        // Lógica para adjuntar un archivo PDF desde el almacenamiento interno
+        // Puedes usar Intent.ACTION_GET_CONTENT para abrir el selector de archivos
+        // y obtener la URI del archivo seleccionado
+    }
+
+    private fun attachImage() {
+        // Lógica para adjuntar una imagen desde la galería del teléfono
+        // Puedes usar Intent.ACTION_PICK y MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        // para abrir la galería y obtener la URI de la imagen seleccionada
+    }
+
+    private fun takePicture() {
+        // Lógica para tomar una foto con la cámara del teléfono
+        // Puedes usar Intent(MediaStore.ACTION_IMAGE_CAPTURE) para abrir la cámara
+        // y obtener la imagen capturada
     }
 
     private fun saveInvoiceToFirestore(invoice: Invoice) {
@@ -80,17 +149,44 @@ class AddInvoiceActivity : AppCompatActivity() {
     }
 
     private fun saveInvoice() {
-        val providerName = binding.editTextProviderName.text.toString().trim()
-        val amount = binding.editTextAmount.text.toString().toDoubleOrNull() ?: 0.0
-        val imageUrl = binding.editTextImageUrl.text.toString().trim()
+        val manufacturer = binding.editTextManufacturer.text.toString().trim()
+        val productName = binding.editTextProductName.text.toString().trim()
+        val price = binding.editTextPrice.text.toString().toDoubleOrNull() ?: 0.0
+        val supplier = binding.editTextSupplier.text.toString().trim()
 
-        if (providerName.isNotBlank() && amount > 0.0 && selectedDate != 0L) {
-            val date = Date(selectedDate)
-            val invoice = Invoice(providerName = providerName, amount = amount, date = date, imageUrl = imageUrl)
+        // Obtener la fecha de compra y la fecha de garantía
+
+        if (manufacturer.isNotBlank() && productName.isNotBlank() && price > 0.0 && supplier.isNotBlank()) {
+            val purchaseDate = Date(selectedDate)
+            val warrantyPeriodIndex = binding.spinnerWarrantyPeriod.selectedItemPosition
+            val warrantyDate = getWarrantyDate(purchaseDate, warrantyPeriodIndex)
+
+            val invoice = Invoice(
+                manufacturer = manufacturer,
+                productName = productName,
+                price = price,
+                supplier = supplier,
+                purchaseDate = purchaseDate,
+                warrantyDate = warrantyDate,
+            )
             saveInvoiceToFirestore(invoice)
         } else {
-            showErrorMessage("Por favor, ingresa un nombre de proveedor, un monto válido y selecciona una fecha.")
+            showErrorMessage("Por favor, completa todos los campos obligatorios.")
         }
+    }
+
+    private fun getWarrantyDate(purchaseDate: Date, warrantyPeriodIndex: Int): Date {
+        val calendar = Calendar.getInstance()
+        calendar.time = purchaseDate
+
+        when (warrantyPeriodIndex) {
+            0 -> calendar.add(Calendar.MONTH, 6)
+            1 -> calendar.add(Calendar.YEAR, 1)
+            2 -> calendar.add(Calendar.YEAR, 2)
+            3 -> calendar.add(Calendar.YEAR, 3)
+        }
+
+        return calendar.time
     }
 
     private fun showErrorMessage(message: String) {
