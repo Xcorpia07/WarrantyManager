@@ -5,13 +5,14 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.warrantymanager.databinding.ActivityInvoicesBinding
 
 class InvoicesActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityInvoicesBinding
-    private lateinit var adapter: InvoiceAdapter
+    private lateinit var invoiceAdapter: InvoiceAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +20,7 @@ class InvoicesActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.recyclerViewInvoices.layoutManager = LinearLayoutManager(this)
+
         getInvoices()
 
         binding.fabAddInvoice.setOnClickListener {
@@ -36,19 +38,20 @@ class InvoicesActivity : AppCompatActivity() {
                 return@addSnapshotListener
             }
 
-            val invoices = mutableListOf<Invoice>()
-            for (document in snapshot?.documents ?: emptyList()) {
-                val invoice = document.toObject(Invoice::class.java)
-                if (invoice != null) {
-                    invoices.add(invoice)
-                }
-            }
-            updateInvoiceList(invoices)
+            val invoiceRefs = snapshot?.documents?.map { it.reference } ?: emptyList()
+            setupInvoiceAdapter(invoiceRefs)
         }
     }
 
-    private fun updateInvoiceList(invoices: List<Invoice>) {
-        val adapter = InvoiceAdapter(invoices)
-        binding.recyclerViewInvoices.adapter = adapter
+    private fun setupInvoiceAdapter(invoiceRefs: List<DocumentReference>) {
+        val onItemClickListener: (DocumentReference) -> Unit = { invoiceRef ->
+            val intent = Intent(this, InvoiceDetailsActivity::class.java)
+            intent.putExtra("invoicePath", invoiceRef.path)
+            startActivity(intent)
+        }
+
+        invoiceAdapter = InvoiceAdapter(invoiceRefs, onItemClickListener)
+        binding.recyclerViewInvoices.adapter = invoiceAdapter
     }
+
 }

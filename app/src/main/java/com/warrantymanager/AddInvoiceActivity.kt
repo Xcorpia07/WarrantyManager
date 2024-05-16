@@ -51,7 +51,19 @@ class AddInvoiceActivity : AppCompatActivity() {
 
         invoicesCollection.add(invoice)
             .addOnSuccessListener { documentReference ->
-                Log.d("AddInvoiceActivity", "Invoice added with ID: ${documentReference.id}")
+                val invoiceId = documentReference.id
+                Log.d("AddInvoiceActivity", "Invoice added with ID: ${invoiceId}")
+                val updateInvoiceId = invoice.copy(id=invoiceId)
+
+                documentReference.set(updateInvoiceId)
+                    .addOnSuccessListener {
+                        Log.d("AddInvoiceActivity", "Invoice ID saved in the document")
+                        finish()
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e("AddInvoiceActivity", "Error saving invoice ID: ", exception)
+                        showErrorMessage("Error al guardar el ID de la factura: ${exception.message}")
+                    }
                 finish()
             }
             .addOnFailureListener { exception ->
