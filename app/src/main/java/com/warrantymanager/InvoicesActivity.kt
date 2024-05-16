@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.warrantymanager.databinding.ActivityInvoicesBinding
@@ -29,17 +30,22 @@ class InvoicesActivity : AppCompatActivity() {
     }
 
     private fun getInvoices() {
-        val db = FirebaseFirestore.getInstance()
-        val invoicesCollection = db.collection("invoices")
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            val db = FirebaseFirestore.getInstance()
+            val userInvoicesCollection = db.collection("users").document(userId).collection("invoices")
 
-        invoicesCollection.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                Log.e("InvoicesActivity", "Error getting invoices: ", error)
-                return@addSnapshotListener
+            userInvoicesCollection.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("InvoicesActivity", "Error getting invoices: ", error)
+                    return@addSnapshotListener
+                }
+
+                val invoiceRefs = snapshot?.documents?.map { it.reference } ?: emptyList()
+                setupInvoiceAdapter(invoiceRefs)
             }
-
-            val invoiceRefs = snapshot?.documents?.map { it.reference } ?: emptyList()
-            setupInvoiceAdapter(invoiceRefs)
+        } else {
+            Log.e("InvoicesActivity", "No user is authenticated")
         }
     }
 

@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.warrantymanager.databinding.ActivityAddInvoiceBinding
 import java.text.SimpleDateFormat
@@ -46,30 +47,36 @@ class AddInvoiceActivity : AppCompatActivity() {
     }
 
     private fun saveInvoiceToFirestore(invoice: Invoice) {
-        val db = FirebaseFirestore.getInstance()
-        val invoicesCollection = db.collection("invoices")
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            val db = FirebaseFirestore.getInstance()
+            val userInvoicesCollection = db.collection("users").document(userId).collection("invoices")
 
-        invoicesCollection.add(invoice)
-            .addOnSuccessListener { documentReference ->
-                val invoiceId = documentReference.id
-                Log.d("AddInvoiceActivity", "Invoice added with ID: ${invoiceId}")
-                val updateInvoiceId = invoice.copy(id=invoiceId)
+            userInvoicesCollection.add(invoice)
+                .addOnSuccessListener { documentReference ->
+                    val invoiceId = documentReference.id
+                    Log.d("AddInvoiceActivity", "Invoice added with ID: $invoiceId")
 
-                documentReference.set(updateInvoiceId)
-                    .addOnSuccessListener {
-                        Log.d("AddInvoiceActivity", "Invoice ID saved in the document")
-                        finish()
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.e("AddInvoiceActivity", "Error saving invoice ID: ", exception)
-                        showErrorMessage("Error al guardar el ID de la factura: ${exception.message}")
-                    }
-                finish()
-            }
-            .addOnFailureListener { exception ->
-                Log.e("AddInvoiceActivity", "Error adding invoice: ", exception)
-                showErrorMessage("Error al guardar la factura: ${exception.message}")
-            }
+                    val updatedInvoice = invoice.copy(id = invoiceId)
+
+                    documentReference.set(updatedInvoice)
+                        .addOnSuccessListener {
+                            Log.d("AddInvoiceActivity", "Invoice ID saved in the document")
+                            finish()
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("AddInvoiceActivity", "Error saving invoice ID: ", exception)
+                            showErrorMessage("Error al guardar el ID de la factura: ${exception.message}")
+                        }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("AddInvoiceActivity", "Error adding invoice: ", exception)
+                    showErrorMessage("Error al guardar la factura: ${exception.message}")
+                }
+        } else {
+            Log.e("AddInvoiceActivity", "No user is authenticated")
+            showErrorMessage("No hay un usuario autenticado")
+        }
     }
 
     private fun saveInvoice() {
