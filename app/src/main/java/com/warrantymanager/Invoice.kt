@@ -10,5 +10,5 @@ data class Invoice(
     var supplier: String = "",
     var purchaseDate: Date = Date(),
     var warrantyDate: Date = Date(),
-    val imageUrl: String = ""
+    var invoiceFileUrl: String = ""
 )

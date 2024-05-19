@@ -1,16 +1,29 @@
 package com.warrantymanager
 
 import android.app.AlertDialog
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.webkit.MimeTypeMap
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.storage
 import com.warrantymanager.databinding.ActivityAddInvoiceBinding
+import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -20,6 +33,12 @@ class AddInvoiceActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddInvoiceBinding
     private var selectedDate: Long = System.currentTimeMillis()
+    private val REQUEST_ATTACH_PDF = 1
+    private val REQUEST_ATTACH_IMAGE = 2
+    private val REQUEST_TAKE_PHOTO = 3
+    private var selectedPdfUri: Uri? = null
+    private var selectedImageUri: Uri? = null
+    private var currentPhotoPath: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +56,6 @@ class AddInvoiceActivity : AppCompatActivity() {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                // No se seleccionó ningún periodo de garantía
             }
         }
 
@@ -49,6 +67,26 @@ class AddInvoiceActivity : AppCompatActivity() {
             saveInvoice()
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                REQUEST_ATTACH_PDF -> {
+                    selectedPdfUri = data?.data
+                    Toast.makeText(this, "PDF seleccionado", Toast.LENGTH_SHORT).show()
+                }
+                REQUEST_ATTACH_IMAGE -> {
+                    selectedImageUri = data?.data
+                    Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
+                }
+                REQUEST_TAKE_PHOTO -> {
+                    Toast.makeText(this, "Foto tomada", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     private fun showDatePicker() {
         val currentDate = selectedDate
         val datePicker = MaterialDatePicker.Builder.datePicker()
@@ -89,7 +127,7 @@ class AddInvoiceActivity : AppCompatActivity() {
             .setTitle("Seleccionar opción")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> attachFile()
+                    0 -> attachPdf()
                     1 -> attachImage()
                     2 -> takePicture()
                 }
@@ -97,22 +135,52 @@ class AddInvoiceActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun attachFile() {
-        // Lógica para adjuntar un archivo PDF desde el almacenamiento interno
-        // Puedes usar Intent.ACTION_GET_CONTENT para abrir el selector de archivos
-        // y obtener la URI del archivo seleccionado
+
+    private fun attachPdf() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "application/pdf"
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        startActivityForResult(intent, REQUEST_ATTACH_PDF)
     }
 
     private fun attachImage() {
-        // Lógica para adjuntar una imagen desde la galería del teléfono
-        // Puedes usar Intent.ACTION_PICK y MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        // para abrir la galería y obtener la URI de la imagen seleccionada
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, REQUEST_ATTACH_IMAGE)
     }
 
     private fun takePicture() {
-        // Lógica para tomar una foto con la cámara del teléfono
-        // Puedes usar Intent(MediaStore.ACTION_IMAGE_CAPTURE) para abrir la cámara
-        // y obtener la imagen capturada
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(packageManager)?.also {
+                val photoFile: File? = try {
+                    createImageFile()
+                } catch (ex: IOException) {
+                    null
+                }
+                photoFile?.also {
+                    val photoURI: Uri = FileProvider.getUriForFile(
+                        this,
+                        "com.warrantymanager.fileprovider",
+                        it
+                    )
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
+                }
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        ).apply {
+            currentPhotoPath = absolutePath
+        }
     }
 
     private fun saveInvoiceToFirestore(invoice: Invoice) {
@@ -154,8 +222,6 @@ class AddInvoiceActivity : AppCompatActivity() {
         val price = binding.editTextPrice.text.toString().toDoubleOrNull() ?: 0.0
         val supplier = binding.editTextSupplier.text.toString().trim()
 
-        // Obtener la fecha de compra y la fecha de garantía
-
         if (manufacturer.isNotBlank() && productName.isNotBlank() && price > 0.0 && supplier.isNotBlank()) {
             val purchaseDate = Date(selectedDate)
             val warrantyPeriodIndex = binding.spinnerWarrantyPeriod.selectedItemPosition
@@ -169,10 +235,52 @@ class AddInvoiceActivity : AppCompatActivity() {
                 purchaseDate = purchaseDate,
                 warrantyDate = warrantyDate,
             )
-            saveInvoiceToFirestore(invoice)
+
+            val invoiceFileUri = selectedPdfUri ?: selectedImageUri
+            if (invoiceFileUri != null) {
+                uploadFileToFirebase(invoiceFileUri, "invoiceFiles") { downloadUrl ->
+                    invoice.invoiceFileUrl = downloadUrl
+                    saveInvoiceToFirestore(invoice)
+                }
+            } else if (currentPhotoPath.isNotEmpty()) {
+                uploadFileToFirebase(Uri.fromFile(File(currentPhotoPath)), "invoiceFiles") { downloadUrl ->
+                    invoice.invoiceFileUrl = downloadUrl
+                    saveInvoiceToFirestore(invoice)
+                }
+            } else {
+                saveInvoiceToFirestore(invoice)
+            }
+
         } else {
             showErrorMessage("Por favor, completa todos los campos obligatorios.")
         }
+    }
+
+    private fun uploadFileToFirebase(fileUri: Uri, directory: String, onSuccess: (String) -> Unit) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            val storageRef = Firebase.storage.reference
+            val fileRef = storageRef.child("users/$userId/$directory/${System.currentTimeMillis()}.${getFileExtension(fileUri)}")
+            fileRef.putFile(fileUri)
+                .addOnSuccessListener { taskSnapshot ->
+                    fileRef.downloadUrl.addOnSuccessListener { uri ->
+                        onSuccess(uri.toString())
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("AddInvoiceActivity", "Error al subir el archivo", exception)
+                    showErrorMessage("Error al subir el archivo")
+                }
+        } else {
+            Log.e("AddInvoiceActivity", "No user is authenticated")
+            showErrorMessage("No hay un usuario autenticado")
+        }
+    }
+
+    private fun getFileExtension(uri: Uri): String? {
+        val contentResolver = contentResolver
+        val mimeTypeMap = MimeTypeMap.getSingleton()
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri))
     }
 
     private fun getWarrantyDate(purchaseDate: Date, warrantyPeriodIndex: Int): Date {

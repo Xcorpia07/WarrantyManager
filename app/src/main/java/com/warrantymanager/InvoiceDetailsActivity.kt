@@ -6,6 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
 import com.warrantymanager.databinding.ActivityInvoiceDetailsBinding
 import java.text.SimpleDateFormat
@@ -36,6 +37,8 @@ class InvoiceDetailsActivity : AppCompatActivity() {
                     binding.textViewSupplier.text = invoice.supplier
                     binding.textViewPurchaseDate.text = dateFormat.format(invoice.purchaseDate)
                     binding.textViewWarrantyDate.text = dateFormat.format(invoice.warrantyDate)
+                    Glide.with(this).load(invoice.invoiceFileUrl).into(binding.imageViewInvoice)
+
                 }
             }
             .addOnFailureListener { exception ->
