@@ -10,5 +10,7 @@ data class Invoice(
     var supplier: String = "",
     var purchaseDate: Date = Date(),
     var warrantyDate: Date = Date(),
+    var warrantyPeriod: String = "",
+    var productImageUrl: String = "",
     var invoiceFileUrl: String = ""
 )

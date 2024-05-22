@@ -32,24 +32,32 @@ import java.util.Locale
 class AddInvoiceActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddInvoiceBinding
-    private var selectedDate: Long = System.currentTimeMillis()
     private val REQUEST_ATTACH_PDF = 1
     private val REQUEST_ATTACH_IMAGE = 2
     private val REQUEST_TAKE_PHOTO = 3
-    private var selectedPdfUri: Uri? = null
-    private var selectedImageUri: Uri? = null
-    private var currentPhotoPath: String = ""
+    private val REQUEST_ATTACH_PRODUCT_IMAGE = 4
+    private val REQUEST_TAKE_PRODUCT_PHOTO = 5
+    private var selectedInvoicePdfUri: Uri? = null
+    private var selectedInvoiceImageUri: Uri? = null
+    private var currentInvoicePhotoPath: String = ""
+    private var selectedProductImageUri: Uri? = null
+    private var currentProductPhotoPath: String = ""
+
+
+    private var selectedDate: Long = System.currentTimeMillis()
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddInvoiceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val currentDate = Date(selectedDate)
+        binding.textViewPurchaseDate.text = dateFormat.format(currentDate)
         binding.textViewPurchaseDate.setOnClickListener{
             showDatePicker()
         }
 
-        binding.spinnerWarrantyPeriod.prompt = getString(R.string.hint_warranty_period)
         binding.spinnerWarrantyPeriod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 updateWarrantyDate(position)
@@ -57,6 +65,10 @@ class AddInvoiceActivity : AppCompatActivity() {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
+        }
+
+        binding.buttonAddImage.setOnClickListener {
+            showAddOptions()
         }
 
         binding.buttonAttachDocument.setOnClickListener {
@@ -73,15 +85,26 @@ class AddInvoiceActivity : AppCompatActivity() {
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 REQUEST_ATTACH_PDF -> {
-                    selectedPdfUri = data?.data
+                    selectedInvoicePdfUri = data?.data
                     Toast.makeText(this, "PDF seleccionado", Toast.LENGTH_SHORT).show()
                 }
                 REQUEST_ATTACH_IMAGE -> {
-                    selectedImageUri = data?.data
+                    selectedInvoiceImageUri = data?.data
                     Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
                 }
                 REQUEST_TAKE_PHOTO -> {
+                    selectedInvoiceImageUri = Uri.fromFile(File(currentInvoicePhotoPath))
                     Toast.makeText(this, "Foto tomada", Toast.LENGTH_SHORT).show()
+                }
+                REQUEST_ATTACH_PRODUCT_IMAGE -> {
+                    selectedProductImageUri = data?.data
+                    binding.imageViewProduct.setImageURI(selectedProductImageUri)
+                    Toast.makeText(this, "Imagen del producto seleccionada", Toast.LENGTH_SHORT).show()
+                }
+                REQUEST_TAKE_PRODUCT_PHOTO -> {
+                    selectedProductImageUri = Uri.fromFile(File(currentProductPhotoPath))
+                    binding.imageViewProduct.setImageURI(selectedProductImageUri)
+                    Toast.makeText(this, "Foto del producto tomada", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -96,7 +119,6 @@ class AddInvoiceActivity : AppCompatActivity() {
 
         datePicker.addOnPositiveButtonClickListener { selectedDateMillis ->
             selectedDate = selectedDateMillis
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             val dateString = dateFormat.format(Date(selectedDateMillis))
             binding.textViewPurchaseDate.text = dateString
             updateWarrantyDate(binding.spinnerWarrantyPeriod.selectedItemPosition)
@@ -116,9 +138,8 @@ class AddInvoiceActivity : AppCompatActivity() {
             3 -> calendar.add(Calendar.YEAR, 3)
         }
 
-        val warrantyDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val warrantyDateString = warrantyDateFormat.format(calendar.time)
-        binding.textViewWarrantyDate.text = "Fecha de garantía: $warrantyDateString"
+        val warrantyDateString = dateFormat.format(calendar.time)
+        binding.textViewWarrantyDate.text = warrantyDateString
     }
 
     private fun showAttachmentOptions() {
@@ -128,8 +149,21 @@ class AddInvoiceActivity : AppCompatActivity() {
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> attachPdf()
-                    1 -> attachImage()
-                    2 -> takePicture()
+                    1 -> attachImage(REQUEST_ATTACH_IMAGE)
+                    2 -> takePicture(REQUEST_TAKE_PHOTO)
+                }
+            }
+            .show()
+    }
+
+    private fun showAddOptions() {
+        val options = arrayOf("Adjuntar imagen", "Tomar foto")
+        AlertDialog.Builder(this)
+            .setTitle("Seleccionar opción")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> attachImage(REQUEST_ATTACH_PRODUCT_IMAGE)
+                    1 -> takePicture(REQUEST_TAKE_PRODUCT_PHOTO)
                 }
             }
             .show()
@@ -144,16 +178,20 @@ class AddInvoiceActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_ATTACH_PDF)
     }
 
-    private fun attachImage() {
+    private fun attachImage(requestCode: Int) {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQUEST_ATTACH_IMAGE)
+        startActivityForResult(intent, requestCode)
     }
 
-    private fun takePicture() {
+    private fun takePicture(requestCode: Int) {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             takePictureIntent.resolveActivity(packageManager)?.also {
                 val photoFile: File? = try {
-                    createImageFile()
+                    when (requestCode) {
+                        REQUEST_TAKE_PHOTO -> createImageFile { currentInvoicePhotoPath = it }
+                        REQUEST_TAKE_PRODUCT_PHOTO -> createImageFile { currentProductPhotoPath = it }
+                        else -> null
+                    }
                 } catch (ex: IOException) {
                     null
                 }
@@ -164,14 +202,13 @@ class AddInvoiceActivity : AppCompatActivity() {
                         it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
+                    startActivityForResult(takePictureIntent, requestCode)
                 }
             }
         }
     }
 
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
+    private fun createImageFile(path: (String) -> Unit): File {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
@@ -179,7 +216,7 @@ class AddInvoiceActivity : AppCompatActivity() {
             ".jpg",
             storageDir
         ).apply {
-            currentPhotoPath = absolutePath
+            path(absolutePath)
         }
     }
 
@@ -226,6 +263,8 @@ class AddInvoiceActivity : AppCompatActivity() {
             val purchaseDate = Date(selectedDate)
             val warrantyPeriodIndex = binding.spinnerWarrantyPeriod.selectedItemPosition
             val warrantyDate = getWarrantyDate(purchaseDate, warrantyPeriodIndex)
+            val warrantyPeriod = binding.spinnerWarrantyPeriod.selectedItem.toString()
+
 
             val invoice = Invoice(
                 manufacturer = manufacturer,
@@ -234,22 +273,35 @@ class AddInvoiceActivity : AppCompatActivity() {
                 supplier = supplier,
                 purchaseDate = purchaseDate,
                 warrantyDate = warrantyDate,
+                warrantyPeriod = warrantyPeriod
             )
 
-            val invoiceFileUri = selectedPdfUri ?: selectedImageUri
-            if (invoiceFileUri != null) {
-                uploadFileToFirebase(invoiceFileUri, "invoiceFiles") { downloadUrl ->
-                    invoice.invoiceFileUrl = downloadUrl
-                    saveInvoiceToFirestore(invoice)
-                }
-            } else if (currentPhotoPath.isNotEmpty()) {
-                uploadFileToFirebase(Uri.fromFile(File(currentPhotoPath)), "invoiceFiles") { downloadUrl ->
-                    invoice.invoiceFileUrl = downloadUrl
-                    saveInvoiceToFirestore(invoice)
+            val productImageUri = selectedProductImageUri
+            val invoiceFileUri = selectedInvoicePdfUri ?: selectedInvoiceImageUri
+
+            if (productImageUri != null) {
+                uploadFileToFirebase(productImageUri, "productImages") { productImageUrl ->
+                    invoice.productImageUrl = productImageUrl
+                    if (invoiceFileUri != null) {
+                        uploadFileToFirebase(invoiceFileUri, "invoiceFiles") { invoiceFileUrl ->
+                            invoice.invoiceFileUrl = invoiceFileUrl
+                            saveInvoiceToFirestore(invoice)
+                        }
+                    } else {
+                        saveInvoiceToFirestore(invoice)
+                    }
                 }
             } else {
-                saveInvoiceToFirestore(invoice)
+                if (invoiceFileUri != null) {
+                    uploadFileToFirebase(invoiceFileUri, "invoiceFiles") { invoiceFileUrl ->
+                        invoice.invoiceFileUrl = invoiceFileUrl
+                        saveInvoiceToFirestore(invoice)
+                    }
+                } else {
+                    saveInvoiceToFirestore(invoice)
+                }
             }
+
 
         } else {
             showErrorMessage("Por favor, completa todos los campos obligatorios.")

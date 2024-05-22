@@ -40,6 +40,9 @@
     <string name="hint_price">Precio del producto</string>
     <string name="hint_supplier">Proveedor</string>
     <string name="text_purchase_date">Fecha de compra</string>
+    <string name="title_purchase_date">Fecha de Compra</string>
+    <string name="title_warranty_period">Periodo de Garantía</string>
+    <string name="title_warranty_until">Garantía Hasta</string>
 
     <string name="hint_warranty_period">Selecciona el período de garantía</string>
     <string-array name="warranty_periods">
@@ -49,6 +52,7 @@
         <item>3 años</item>
     </string-array>
 
+    <string name="button_add_image">Agregar imagen</string>
     <string name="button_attach_document">Adjuntar documento</string>
     <string name="button_save_invoice">Guardar factura</string>
 
