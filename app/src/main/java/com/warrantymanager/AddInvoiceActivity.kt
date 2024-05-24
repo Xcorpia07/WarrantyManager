@@ -2,7 +2,6 @@ package com.warrantymanager
 
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -13,8 +12,6 @@ import android.webkit.MimeTypeMap
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.firebase.Firebase
@@ -43,18 +40,25 @@ class AddInvoiceActivity : AppCompatActivity() {
     private var selectedProductImageUri: Uri? = null
     private var currentProductPhotoPath: String = ""
 
-
     private var selectedDate: Long = System.currentTimeMillis()
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+    private var invoiceId: String? = null
+    private var isEditing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddInvoiceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val invoiceEditPath = intent.getStringExtra("invoiceEditPath")
+        if (invoiceEditPath != null) {
+            loadInvoiceFromFirebase(invoiceEditPath)
+        }
+
         val currentDate = Date(selectedDate)
         binding.textViewPurchaseDate.text = dateFormat.format(currentDate)
-        binding.textViewPurchaseDate.setOnClickListener{
+        binding.textViewPurchaseDate.setOnClickListener {
             showDatePicker()
         }
 
@@ -62,9 +66,7 @@ class AddInvoiceActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 updateWarrantyDate(position)
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         binding.buttonAddImage.setOnClickListener {
@@ -78,6 +80,49 @@ class AddInvoiceActivity : AppCompatActivity() {
         binding.buttonSaveInvoice.setOnClickListener {
             saveInvoice()
         }
+    }
+
+    private fun loadInvoiceFromFirebase(invoicePath: String) {
+        val db = FirebaseFirestore.getInstance()
+        val documentReference = db.document(invoicePath)
+        documentReference.get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val invoice = document.toObject(Invoice::class.java)
+                    if (invoice != null) {
+                        loadInvoiceData(invoice)
+                    }
+                } else {
+                    showErrorMessage("La factura no existe.")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("AddInvoiceActivity", "Error al obtener la factura: ", exception)
+                showErrorMessage("Error al obtener la factura: ${exception.message}")
+            }
+    }
+
+    private fun loadInvoiceData(invoice: Invoice) {
+        binding.editTextManufacturer.setText(invoice.manufacturer)
+        binding.editTextProductName.setText(invoice.productName)
+        binding.editTextPrice.setText(invoice.price.toString())
+        binding.editTextSupplier.setText(invoice.supplier)
+        binding.textViewPurchaseDate.text = dateFormat.format(invoice.purchaseDate)
+        selectedDate = invoice.purchaseDate.time
+
+        selectedProductImageUri = Uri.parse(invoice.productImageUrl)
+        binding.imageViewProduct.setImageURI(selectedProductImageUri)
+
+
+        val warrantyPeriodIndex = when (invoice.warrantyPeriod) {
+            "6 meses" -> 0
+            "1 año" -> 1
+            "2 años" -> 2
+            "3 años" -> 3
+            else -> 0
+        }
+        binding.spinnerWarrantyPeriod.setSelection(warrantyPeriodIndex)
+        updateWarrantyDate(warrantyPeriodIndex)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -139,7 +184,6 @@ class AddInvoiceActivity : AppCompatActivity() {
         }
 
         val warrantyDateString = dateFormat.format(calendar.time)
-        binding.textViewWarrantyDate.text = warrantyDateString
     }
 
     private fun showAttachmentOptions() {
@@ -168,7 +212,6 @@ class AddInvoiceActivity : AppCompatActivity() {
             }
             .show()
     }
-
 
     private fun attachPdf() {
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -226,27 +269,38 @@ class AddInvoiceActivity : AppCompatActivity() {
             val db = FirebaseFirestore.getInstance()
             val userInvoicesCollection = db.collection("users").document(userId).collection("invoices")
 
-            userInvoicesCollection.add(invoice)
-                .addOnSuccessListener { documentReference ->
-                    val invoiceId = documentReference.id
-                    Log.d("AddInvoiceActivity", "Invoice added with ID: $invoiceId")
+            if (isEditing && invoiceId != null) {
+                userInvoicesCollection.document(invoiceId!!).set(invoice)
+                    .addOnSuccessListener {
+                        Log.d("AddInvoiceActivity", "Invoice updated with ID: $invoiceId")
+                        finish()
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e("AddInvoiceActivity", "Error updating invoice: ", exception)
+                        showErrorMessage("Error al actualizar la factura: ${exception.message}")
+                    }
+            } else {
+                userInvoicesCollection.add(invoice)
+                    .addOnSuccessListener { documentReference ->
+                        val newInvoiceId = documentReference.id
+                        Log.d("AddInvoiceActivity", "Invoice added with ID: $newInvoiceId")
 
-                    val updatedInvoice = invoice.copy(id = invoiceId)
-
-                    documentReference.set(updatedInvoice)
-                        .addOnSuccessListener {
-                            Log.d("AddInvoiceActivity", "Invoice ID saved in the document")
-                            finish()
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e("AddInvoiceActivity", "Error saving invoice ID: ", exception)
-                            showErrorMessage("Error al guardar el ID de la factura: ${exception.message}")
-                        }
-                }
-                .addOnFailureListener { exception ->
-                    Log.e("AddInvoiceActivity", "Error adding invoice: ", exception)
-                    showErrorMessage("Error al guardar la factura: ${exception.message}")
-                }
+                        val updatedInvoice = invoice.copy(id = newInvoiceId)
+                        documentReference.set(updatedInvoice)
+                            .addOnSuccessListener {
+                                Log.d("AddInvoiceActivity", "Invoice ID saved in the document")
+                                finish()
+                            }
+                            .addOnFailureListener { exception ->
+                                Log.e("AddInvoiceActivity", "Error saving invoice ID: ", exception)
+                                showErrorMessage("Error al guardar el ID de la factura: ${exception.message}")
+                            }
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e("AddInvoiceActivity", "Error adding invoice: ", exception)
+                        showErrorMessage("Error al guardar la factura: ${exception.message}")
+                    }
+            }
         } else {
             Log.e("AddInvoiceActivity", "No user is authenticated")
             showErrorMessage("No hay un usuario autenticado")
@@ -264,7 +318,6 @@ class AddInvoiceActivity : AppCompatActivity() {
             val warrantyPeriodIndex = binding.spinnerWarrantyPeriod.selectedItemPosition
             val warrantyDate = getWarrantyDate(purchaseDate, warrantyPeriodIndex)
             val warrantyPeriod = binding.spinnerWarrantyPeriod.selectedItem.toString()
-
 
             val invoice = Invoice(
                 manufacturer = manufacturer,
@@ -301,8 +354,6 @@ class AddInvoiceActivity : AppCompatActivity() {
                     saveInvoiceToFirestore(invoice)
                 }
             }
-
-
         } else {
             showErrorMessage("Por favor, completa todos los campos obligatorios.")
         }

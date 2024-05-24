@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imageViewProduct"
             android:layout_width="120dp"
             android:layout_height="120dp"
@@ -21,7 +21,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:src="@drawable/ic_product_placeholder" />
+            tools:src="@drawable/ic_product_placeholder"
+            app:shapeAppearanceOverlay="@style/radius"/>
 
         <TextView
             android:id="@+id/textViewProductName"
@@ -39,7 +40,7 @@
             android:id="@+id/textViewManufacturer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@id/textViewProductName"
@@ -47,30 +48,20 @@
             tools:text="Fabricante" />
 
         <TextView
-            android:id="@+id/textViewPurchaseDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="@id/textViewProductName"
-            app:layout_constraintTop_toBottomOf="@id/textViewManufacturer"
-            tools:text="Fecha de compra: 01/01/2023" />
-
-        <TextView
             android:id="@+id/textViewWarrantyDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="@id/textViewProductName"
-            app:layout_constraintTop_toBottomOf="@id/textViewPurchaseDate"
+            app:layout_constraintTop_toBottomOf="@+id/textViewManufacturer"
             tools:text="Garantía hasta: 01/07/2023" />
 
         <TextView
             android:id="@+id/textViewRemainingWarranty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="@id/textViewProductName"
             app:layout_constraintTop_toBottomOf="@id/textViewWarrantyDate"

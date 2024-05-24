@@ -1,11 +1,9 @@
 package com.warrantymanager
 
 import android.view.LayoutInflater
-import android.view.RoundedCorner
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.firebase.firestore.DocumentReference
 import com.warrantymanager.databinding.ItemInvoiceBinding
 import java.text.SimpleDateFormat
@@ -36,18 +34,19 @@ class InvoiceAdapter(
     }
 
     inner class ViewHolder(private val binding: ItemInvoiceBinding) : RecyclerView.ViewHolder(binding.root) {
+        private val resources = binding.root.context.resources
         fun bind(invoiceRef: DocumentReference) {
             invoiceRef.get().addOnSuccessListener { documentSnapshot ->
                 val invoice = documentSnapshot.toObject(Invoice::class.java)
                 if (invoice != null) {
                     binding.textViewManufacturer.text = invoice.manufacturer
                     binding.textViewProductName.text = invoice.productName
-                    binding.textViewPurchaseDate.text = "Fecha de compra: ${dateFormat.format(invoice.purchaseDate)}"
-                    binding.textViewWarrantyDate.text = "Garantía hasta: ${dateFormat.format(invoice.warrantyDate)}"
+                    binding.textViewWarrantyDate.text = resources.getString(R.string.label_adapter_warranty_date,dateFormat.format(invoice.warrantyDate))
 
                     val currentDate = Date()
                     val remainingMonths = getRemainingWarrantyMonths(currentDate, invoice.warrantyDate)
-                    binding.textViewRemainingWarranty.text = "Quedan: $remainingMonths meses"
+                    binding.textViewRemainingWarranty.text = resources.getString(R.string.label_adapter_remaining_warranty, remainingMonths)
+
 
                     Glide.with(binding.root.context)
                         .load(invoice.productImageUrl)

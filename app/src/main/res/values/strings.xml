@@ -61,7 +61,19 @@
     <string name="label_product_name">Nombre del producto:</string>
     <string name="label_price">Precio:</string>
     <string name="label_supplier">Proveedor:</string>
-    <string name="label_purchase_date">Fecha de compra:</string>
-    <string name="label_warranty_date">Fecha de garantía:</string>
+    <string name="label_purchase_date">Fecha de compra: </string>
+    <string name="label_warranty_date">Garantia hasta: </string>
+    <string name="label_warranty_period">Período de garantía:</string>
+
+    <string name="label_remaining_warranty">Garantía restante: %1$d meses</string>
+
+    <string name="button_view_invoice">Ver factura</string>
+    <string name="button_delete_product">Eliminar producto</string>
+
+    <string name="content_description_edit">Editar</string>
+
+    //Invoice Adapter
+    <string name="label_adapter_warranty_date">Garantía hasta: %1$s</string>
+    <string name="label_adapter_remaining_warranty">Quedan: %1$d meses</string>
 
 </resources>

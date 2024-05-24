@@ -13,7 +13,7 @@
 
         <ImageView
             android:id="@+id/imageViewProduct"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="200dp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_product_placeholder" />
@@ -125,21 +125,6 @@
             android:entries="@array/warranty_periods"
             android:padding="16dp"
             android:prompt="@string/hint_warranty_period" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/title_warranty_until"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textViewWarrantyDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:textSize="18sp" />
 
         <Button
             android:id="@+id/buttonAttachDocument"
