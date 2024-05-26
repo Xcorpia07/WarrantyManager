@@ -47,10 +47,14 @@ class InvoiceAdapter(
                     val remainingMonths = getRemainingWarrantyMonths(currentDate, invoice.warrantyDate)
                     binding.textViewRemainingWarranty.text = resources.getString(R.string.label_adapter_remaining_warranty, remainingMonths)
 
+                    if(invoice.productImageUrl == ""){
+                        binding.imageViewProduct.setImageResource(R.drawable.ic_product_placeholder)
+                    }else{
+                        Glide.with(binding.root.context)
+                            .load(invoice.productImageUrl)
+                            .into(binding.imageViewProduct)
+                    }
 
-                    Glide.with(binding.root.context)
-                        .load(invoice.productImageUrl)
-                        .into(binding.imageViewProduct)
                 }
             }
             itemView.setOnClickListener { onItemClickListener(invoiceRef) }

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:fillViewport="true">
 
     <LinearLayout
@@ -11,45 +12,32 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imageViewProduct"
             android:layout_width="wrap_content"
             android:layout_height="200dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_product_placeholder" />
+            tools:src="@drawable/ic_product_placeholder"
+            app:shapeAppearanceOverlay="@style/radius"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Material3.Button.Icon"
             android:id="@+id/buttonAddImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="8dp"
-            android:text="@string/button_add_image" />
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/button_add_image"
+            app:icon="@drawable/ic_add_photo"
+            app:iconGravity="textStart"
+            app:iconSize="22dp"
+            android:textSize="18sp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/hint_manufacturer"
-            app:boxBackgroundColor="@color/white"
-            app:boxBackgroundMode="outline"
-            app:boxStrokeColor="@color/colorPrimary">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextManufacturer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="@string/hint_product_name"
-            app:boxBackgroundColor="@color/white"
-            app:boxBackgroundMode="outline"
-            app:boxStrokeColor="@color/colorPrimary">
+            android:hint="@string/hint_product_name">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextProductName"
@@ -62,10 +50,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/hint_price"
-            app:boxBackgroundColor="@color/white"
-            app:boxBackgroundMode="outline"
-            app:boxStrokeColor="@color/colorPrimary">
+            android:hint="@string/hint_manufacturer">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextManufacturer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/hint_supplier">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextSupplier"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/hint_price">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextPrice"
@@ -79,70 +90,63 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/hint_supplier"
-            app:boxBackgroundColor="@color/white"
-            app:boxBackgroundMode="outline"
-            app:boxStrokeColor="@color/colorPrimary">
+            android:hint="@string/text_purchase_date"
+            app:endIconMode="custom"
+            app:endIconDrawable="@drawable/ic_calendar">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextSupplier"
+                android:id="@+id/textViewPurchaseDate"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textSize="18sp"/>
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/title_purchase_date"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:hint="@string/title_warranty_period"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-        <TextView
-            android:id="@+id/textViewPurchaseDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp"
-            android:text="@string/text_purchase_date"
-            android:textSize="18sp" />
+            <AutoCompleteTextView
+                android:id="@+id/autoCompleteWarrantyPeriod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:textSize="18sp"
+                app:simpleItems="@array/warranty_periods" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/title_warranty_period"
-            android:textSize="18sp"
-            android:textStyle="bold" />
 
-        <Spinner
-            android:id="@+id/spinnerWarrantyPeriod"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:entries="@array/warranty_periods"
-            android:padding="16dp"
-            android:prompt="@string/hint_warranty_period" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Material3.Button.Icon"
             android:id="@+id/buttonAttachDocument"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@color/colorPrimary"
+            android:layout_gravity="center_horizontal"
             android:text="@string/button_attach_document"
-            android:textColor="@color/white" />
+            app:icon="@drawable/ic_description"
+            app:iconGravity="textStart"
+            app:iconSize="22dp"
+            android:textSize="18sp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Material3.Button.Icon"
             android:id="@+id/buttonSaveInvoice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@color/colorPrimary"
+            android:layout_gravity="center_horizontal"
             android:text="@string/button_save_invoice"
-            android:textColor="@color/white" />
+            app:icon="@drawable/ic_save"
+            app:iconGravity="textStart"
+            app:iconSize="22dp"
+            android:textSize="18sp" />
+
 
     </LinearLayout>
 

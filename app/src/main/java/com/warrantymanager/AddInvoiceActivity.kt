@@ -8,9 +8,11 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.MimeTypeMap
-import android.widget.AdapterView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -19,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.storage
 import com.warrantymanager.databinding.ActivityAddInvoiceBinding
+import com.warrantymanager.databinding.LoadingViewBinding
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -29,6 +32,7 @@ import java.util.Locale
 class AddInvoiceActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddInvoiceBinding
+    private lateinit var loadingViewBinding: LoadingViewBinding
     private val REQUEST_ATTACH_PDF = 1
     private val REQUEST_ATTACH_IMAGE = 2
     private val REQUEST_TAKE_PHOTO = 3
@@ -43,30 +47,24 @@ class AddInvoiceActivity : AppCompatActivity() {
     private var selectedDate: Long = System.currentTimeMillis()
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-    private var invoiceId: String? = null
-    private var isEditing = false
+    private lateinit var resultLauncher: ActivityResultLauncher<Intent>
+    private var requestCode: Int = 0
+
+    private var loadingView: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddInvoiceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val invoiceEditPath = intent.getStringExtra("invoiceEditPath")
-        if (invoiceEditPath != null) {
-            loadInvoiceFromFirebase(invoiceEditPath)
-        }
+        binding.imageViewProduct.setImageResource(R.drawable.ic_product_placeholder)
+
+        loadingViewBinding = LoadingViewBinding.inflate(layoutInflater)
 
         val currentDate = Date(selectedDate)
-        binding.textViewPurchaseDate.text = dateFormat.format(currentDate)
+        binding.textViewPurchaseDate.setText(dateFormat.format(currentDate))
         binding.textViewPurchaseDate.setOnClickListener {
             showDatePicker()
-        }
-
-        binding.spinnerWarrantyPeriod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateWarrantyDate(position)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         binding.buttonAddImage.setOnClickListener {
@@ -80,76 +78,40 @@ class AddInvoiceActivity : AppCompatActivity() {
         binding.buttonSaveInvoice.setOnClickListener {
             saveInvoice()
         }
-    }
 
-    private fun loadInvoiceFromFirebase(invoicePath: String) {
-        val db = FirebaseFirestore.getInstance()
-        val documentReference = db.document(invoicePath)
-        documentReference.get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    val invoice = document.toObject(Invoice::class.java)
-                    if (invoice != null) {
-                        loadInvoiceData(invoice)
-                    }
-                } else {
-                    showErrorMessage("La factura no existe.")
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.e("AddInvoiceActivity", "Error al obtener la factura: ", exception)
-                showErrorMessage("Error al obtener la factura: ${exception.message}")
-            }
-    }
-
-    private fun loadInvoiceData(invoice: Invoice) {
-        binding.editTextManufacturer.setText(invoice.manufacturer)
-        binding.editTextProductName.setText(invoice.productName)
-        binding.editTextPrice.setText(invoice.price.toString())
-        binding.editTextSupplier.setText(invoice.supplier)
-        binding.textViewPurchaseDate.text = dateFormat.format(invoice.purchaseDate)
-        selectedDate = invoice.purchaseDate.time
-
-        selectedProductImageUri = Uri.parse(invoice.productImageUrl)
-        binding.imageViewProduct.setImageURI(selectedProductImageUri)
-
-
-        val warrantyPeriodIndex = when (invoice.warrantyPeriod) {
-            "6 meses" -> 0
-            "1 año" -> 1
-            "2 años" -> 2
-            "3 años" -> 3
-            else -> 0
+        resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            handleActivityResult(result.resultCode, requestCode, result.data)
         }
-        binding.spinnerWarrantyPeriod.setSelection(warrantyPeriodIndex)
-        updateWarrantyDate(warrantyPeriodIndex)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private fun handleActivityResult(resultCode: Int, requestCode: Int, data: Intent?) {
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 REQUEST_ATTACH_PDF -> {
                     selectedInvoicePdfUri = data?.data
                     Toast.makeText(this, "PDF seleccionado", Toast.LENGTH_SHORT).show()
                 }
-                REQUEST_ATTACH_IMAGE -> {
-                    selectedInvoiceImageUri = data?.data
-                    Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
+                REQUEST_ATTACH_IMAGE, REQUEST_ATTACH_PRODUCT_IMAGE -> {
+                    val uri = data?.data
+                    if (requestCode == REQUEST_ATTACH_IMAGE) {
+                        selectedInvoiceImageUri = uri
+                        Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
+                    } else {
+                        selectedProductImageUri = uri
+                        binding.imageViewProduct.setImageURI(selectedProductImageUri)
+                        Toast.makeText(this, "Imagen del producto seleccionada", Toast.LENGTH_SHORT).show()
+                    }
                 }
-                REQUEST_TAKE_PHOTO -> {
-                    selectedInvoiceImageUri = Uri.fromFile(File(currentInvoicePhotoPath))
-                    Toast.makeText(this, "Foto tomada", Toast.LENGTH_SHORT).show()
-                }
-                REQUEST_ATTACH_PRODUCT_IMAGE -> {
-                    selectedProductImageUri = data?.data
-                    binding.imageViewProduct.setImageURI(selectedProductImageUri)
-                    Toast.makeText(this, "Imagen del producto seleccionada", Toast.LENGTH_SHORT).show()
-                }
-                REQUEST_TAKE_PRODUCT_PHOTO -> {
-                    selectedProductImageUri = Uri.fromFile(File(currentProductPhotoPath))
-                    binding.imageViewProduct.setImageURI(selectedProductImageUri)
-                    Toast.makeText(this, "Foto del producto tomada", Toast.LENGTH_SHORT).show()
+                REQUEST_TAKE_PHOTO, REQUEST_TAKE_PRODUCT_PHOTO -> {
+                    val uri = Uri.fromFile(File(if (requestCode == REQUEST_TAKE_PHOTO) currentInvoicePhotoPath else currentProductPhotoPath))
+                    if (requestCode == REQUEST_TAKE_PHOTO) {
+                        selectedInvoiceImageUri = uri
+                        Toast.makeText(this, "Foto tomada", Toast.LENGTH_SHORT).show()
+                    } else {
+                        selectedProductImageUri = uri
+                        binding.imageViewProduct.setImageURI(selectedProductImageUri)
+                        Toast.makeText(this, "Foto del producto tomada", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -165,25 +127,10 @@ class AddInvoiceActivity : AppCompatActivity() {
         datePicker.addOnPositiveButtonClickListener { selectedDateMillis ->
             selectedDate = selectedDateMillis
             val dateString = dateFormat.format(Date(selectedDateMillis))
-            binding.textViewPurchaseDate.text = dateString
-            updateWarrantyDate(binding.spinnerWarrantyPeriod.selectedItemPosition)
+            binding.textViewPurchaseDate.setText(dateString)
         }
 
         datePicker.show(supportFragmentManager, "DatePicker")
-    }
-
-    private fun updateWarrantyDate(warrantyPeriodIndex: Int) {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = selectedDate
-
-        when (warrantyPeriodIndex) {
-            0 -> calendar.add(Calendar.MONTH, 6)
-            1 -> calendar.add(Calendar.YEAR, 1)
-            2 -> calendar.add(Calendar.YEAR, 2)
-            3 -> calendar.add(Calendar.YEAR, 3)
-        }
-
-        val warrantyDateString = dateFormat.format(calendar.time)
     }
 
     private fun showAttachmentOptions() {
@@ -218,12 +165,14 @@ class AddInvoiceActivity : AppCompatActivity() {
             type = "application/pdf"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
-        startActivityForResult(intent, REQUEST_ATTACH_PDF)
+        requestCode = REQUEST_ATTACH_PDF
+        resultLauncher.launch(intent)
     }
 
     private fun attachImage(requestCode: Int) {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, requestCode)
+        this.requestCode = requestCode
+        resultLauncher.launch(intent)
     }
 
     private fun takePicture(requestCode: Int) {
@@ -245,7 +194,8 @@ class AddInvoiceActivity : AppCompatActivity() {
                         it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, requestCode)
+                    this.requestCode = requestCode
+                    resultLauncher.launch(takePictureIntent)
                 }
             }
         }
@@ -269,38 +219,26 @@ class AddInvoiceActivity : AppCompatActivity() {
             val db = FirebaseFirestore.getInstance()
             val userInvoicesCollection = db.collection("users").document(userId).collection("invoices")
 
-            if (isEditing && invoiceId != null) {
-                userInvoicesCollection.document(invoiceId!!).set(invoice)
-                    .addOnSuccessListener {
-                        Log.d("AddInvoiceActivity", "Invoice updated with ID: $invoiceId")
-                        finish()
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.e("AddInvoiceActivity", "Error updating invoice: ", exception)
-                        showErrorMessage("Error al actualizar la factura: ${exception.message}")
-                    }
-            } else {
-                userInvoicesCollection.add(invoice)
-                    .addOnSuccessListener { documentReference ->
-                        val newInvoiceId = documentReference.id
-                        Log.d("AddInvoiceActivity", "Invoice added with ID: $newInvoiceId")
+            userInvoicesCollection.add(invoice)
+                .addOnSuccessListener { documentReference ->
+                    val newInvoiceId = documentReference.id
+                    Log.d("AddInvoiceActivity", "Invoice added with ID: $newInvoiceId")
 
-                        val updatedInvoice = invoice.copy(id = newInvoiceId)
-                        documentReference.set(updatedInvoice)
-                            .addOnSuccessListener {
-                                Log.d("AddInvoiceActivity", "Invoice ID saved in the document")
-                                finish()
-                            }
-                            .addOnFailureListener { exception ->
-                                Log.e("AddInvoiceActivity", "Error saving invoice ID: ", exception)
-                                showErrorMessage("Error al guardar el ID de la factura: ${exception.message}")
-                            }
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.e("AddInvoiceActivity", "Error adding invoice: ", exception)
-                        showErrorMessage("Error al guardar la factura: ${exception.message}")
-                    }
-            }
+                    val updatedInvoice = invoice.copy(id = newInvoiceId)
+                    documentReference.set(updatedInvoice)
+                        .addOnSuccessListener {
+                            Log.d("AddInvoiceActivity", "Invoice ID saved in the document")
+                            finish()
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("AddInvoiceActivity", "Error saving invoice ID: ", exception)
+                            showErrorMessage("Error al guardar el ID de la factura: ${exception.message}")
+                        }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("AddInvoiceActivity", "Error adding invoice: ", exception)
+                    showErrorMessage("Error al guardar la factura: ${exception.message}")
+                }
         } else {
             Log.e("AddInvoiceActivity", "No user is authenticated")
             showErrorMessage("No hay un usuario autenticado")
@@ -308,6 +246,9 @@ class AddInvoiceActivity : AppCompatActivity() {
     }
 
     private fun saveInvoice() {
+
+        showLoadingView()
+
         val manufacturer = binding.editTextManufacturer.text.toString().trim()
         val productName = binding.editTextProductName.text.toString().trim()
         val price = binding.editTextPrice.text.toString().toDoubleOrNull() ?: 0.0
@@ -315,9 +256,9 @@ class AddInvoiceActivity : AppCompatActivity() {
 
         if (manufacturer.isNotBlank() && productName.isNotBlank() && price > 0.0 && supplier.isNotBlank()) {
             val purchaseDate = Date(selectedDate)
-            val warrantyPeriodIndex = binding.spinnerWarrantyPeriod.selectedItemPosition
+            val warrantyPeriodIndex = binding.autoCompleteWarrantyPeriod.getText().toString()
             val warrantyDate = getWarrantyDate(purchaseDate, warrantyPeriodIndex)
-            val warrantyPeriod = binding.spinnerWarrantyPeriod.selectedItem.toString()
+            val warrantyPeriod = binding.autoCompleteWarrantyPeriod.getText().toString()
 
             val invoice = Invoice(
                 manufacturer = manufacturer,
@@ -365,7 +306,7 @@ class AddInvoiceActivity : AppCompatActivity() {
             val storageRef = Firebase.storage.reference
             val fileRef = storageRef.child("users/$userId/$directory/${System.currentTimeMillis()}.${getFileExtension(fileUri)}")
             fileRef.putFile(fileUri)
-                .addOnSuccessListener { taskSnapshot ->
+                .addOnSuccessListener {
                     fileRef.downloadUrl.addOnSuccessListener { uri ->
                         onSuccess(uri.toString())
                     }
@@ -386,19 +327,26 @@ class AddInvoiceActivity : AppCompatActivity() {
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri))
     }
 
-    private fun getWarrantyDate(purchaseDate: Date, warrantyPeriodIndex: Int): Date {
+    private fun getWarrantyDate(purchaseDate: Date, warrantyPeriod: String): Date {
         val calendar = Calendar.getInstance()
         calendar.time = purchaseDate
 
-        when (warrantyPeriodIndex) {
-            0 -> calendar.add(Calendar.MONTH, 6)
-            1 -> calendar.add(Calendar.YEAR, 1)
-            2 -> calendar.add(Calendar.YEAR, 2)
-            3 -> calendar.add(Calendar.YEAR, 3)
+        when (warrantyPeriod) {
+            "6 meses" -> calendar.add(Calendar.MONTH, 6)
+            "1 año" -> calendar.add(Calendar.YEAR, 1)
+            "2 años" -> calendar.add(Calendar.YEAR, 2)
+            "3 años" -> calendar.add(Calendar.YEAR, 3)
         }
-
         return calendar.time
     }
+
+    private fun showLoadingView() {
+        if (loadingViewBinding.root.parent != null) {
+            (loadingViewBinding.root.parent as? ViewGroup)?.removeView(loadingViewBinding.root)
+        }
+        addContentView(loadingViewBinding.root, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+    }
+
 
     private fun showErrorMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()

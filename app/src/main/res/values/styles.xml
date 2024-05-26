@@ -8,15 +8,11 @@
     </style>
 
     <style name="TextAppearance.App.CollapsingToolbarTitle" parent="TextAppearance.MaterialComponents.Headline6">
-        <item name="android:textColor">@color/colorOnPrimary</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">25sp</item>
     </style>
 
     <style name="TextAppearance.App.Subtitle" parent="TextAppearance.MaterialComponents.Subtitle1">
-    </style>
-
-    <style name="TextAppearance.App.TextInputEditText" parent="TextAppearance.MaterialComponents.Subtitle1">
     </style>
 
 

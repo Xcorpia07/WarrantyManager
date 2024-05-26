@@ -5,7 +5,7 @@
     <string name="invoices">Recibos de Compra</string>
 
     //LoginActivity
-    <string name="app_name">WarrantyManager</string>
+    <string name="app_name">Warranty Manager</string>
     <string name="email_hint">Correo electrónico</string>
     <string name="password_hint">Contraseña</string>
     <string name="login_button">Iniciar Sesión</string>
@@ -31,6 +31,8 @@
 
     //InvoicesActivity
     <string name="invoices_title">Recibos de Compra</string>
+    <string name="orders_title">Ordernar</string>
+    <string name="user_title">Usuario</string>
 
     invoices_title
 

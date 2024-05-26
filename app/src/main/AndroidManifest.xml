@@ -26,9 +26,6 @@
             android:name=".AddInvoiceActivity"
             android:exported="false" />
         <activity
-            android:name=".InvoicesActivity"
-            android:exported="false" />
-        <activity
             android:name=".RegisterActivity"
             android:exported="false" />
         <activity
