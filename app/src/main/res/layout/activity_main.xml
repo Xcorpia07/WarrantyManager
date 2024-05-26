@@ -11,47 +11,24 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
+
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/AppBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/colorPrimary"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <com.google.android.material.appbar.CollapsingToolbarLayout
-                android:id="@+id/collapsingToolbar"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:contentScrim="?attr/colorPrimary"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed">
+                android:layout_height="?attr/actionBarSize"
+                app:layout_scrollFlags="scroll|enterAlways">
 
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    app:layout_collapseMode="pin">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/textViewProductName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/invoices_title"
-                            android:textAppearance="@style/TextAppearance.App.CollapsingToolbarTitle"
-                            android:textColor="@color/white"
-                            android:textSize="25sp" />
-
-                    </LinearLayout>
-
-                </androidx.appcompat.widget.Toolbar>
-
-            </com.google.android.material.appbar.CollapsingToolbarLayout>
+            </androidx.appcompat.widget.Toolbar>
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -59,7 +36,8 @@
             android:id="@+id/recyclerViewInvoices"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/bottomAppBar"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/AppBar"
@@ -77,27 +55,6 @@
             app:layout_constraintBottom_toBottomOf="@+id/recyclerViewInvoices"
             app:layout_constraintEnd_toEndOf="parent"
             app:maxImageSize="32dp" />
-
-        <com.google.android.material.bottomappbar.BottomAppBar
-            android:id="@+id/bottomAppBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:fabCradleMargin="10dp"
-            app:fabCradleRoundedCornerRadius="20dp"
-            app:fabCradleVerticalOffset="10dp"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <com.google.android.material.bottomnavigation.BottomNavigationView
-                android:id="@+id/bottomNavigationView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                app:labelVisibilityMode="unlabeled"
-                app:menu="@menu/bottom_navigation_menu" />
-
-        </com.google.android.material.bottomappbar.BottomAppBar>
-
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

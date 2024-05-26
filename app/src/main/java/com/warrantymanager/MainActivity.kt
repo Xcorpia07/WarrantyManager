@@ -3,27 +3,37 @@ package com.warrantymanager
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.widget.PopupMenu
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import com.warrantymanager.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var auth: FirebaseAuth
+    private var auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val currentUser = auth.currentUser
     private lateinit var invoiceAdapter: InvoiceAdapter
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
-
-        val currentUser = auth.currentUser
         if (currentUser != null) {
             //binding.textViewUserEmail.text = currentUser.email
         } else {
@@ -38,13 +48,104 @@ class MainActivity : AppCompatActivity() {
         binding.fabAddInvoice.setOnClickListener {
             startActivity(Intent(this, AddInvoiceActivity::class.java))
         }
+
+        setSupportActionBar(binding.toolbar)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.invoicesMenuItem -> {
+                true
+            }
+            R.id.orderMenuItem -> {
+                showOrderMenu(findViewById(R.id.orderMenuItem))
+
+                true
+            }
+            R.id.userMenuItem -> {
+                showUserMenu(findViewById(R.id.userMenuItem))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showUserMenu(view: View) {
+        val popupMenu = PopupMenu(this, view)
+        popupMenu.menuInflater.inflate(R.menu.user_options_menu, popupMenu.menu)
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.logout -> {
+                    logout()
+                    true
+                }
+                R.id.deleteAccount -> {
+                    showDeleteAccountConfirmationDialog()
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
+    }
+
+    private fun showOrderMenu(view: View) {
+        val popupMenu = PopupMenu(this, view)
+        popupMenu.menuInflater.inflate(R.menu.sort_menu, popupMenu.menu)
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.sort_by_date -> {
+                    sortInvoices(InvoiceSortOrder.DATE)
+                    true
+                }
+                R.id.sort_by_name -> {
+                    sortInvoices(InvoiceSortOrder.NAME)
+                    true
+                }
+                R.id.sort_by_price -> {
+                    sortInvoices(InvoiceSortOrder.PRICE)
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
+    }
+
+    private fun sortInvoices(sortOrder: InvoiceSortOrder) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            val db = FirebaseFirestore.getInstance()
+            val userInvoicesCollection = db.collection("users").document(userId).collection("invoices")
+
+            val query = when (sortOrder) {
+                InvoiceSortOrder.DATE -> userInvoicesCollection.orderBy("purchaseDate", Query.Direction.DESCENDING)
+                InvoiceSortOrder.NAME -> userInvoicesCollection.orderBy("productName", Query.Direction.ASCENDING)
+                InvoiceSortOrder.PRICE -> userInvoicesCollection.orderBy("price", Query.Direction.DESCENDING)
+            }
+
+            query.get().addOnSuccessListener { snapshot ->
+                val invoiceRefs = snapshot.documents.map { it.reference }
+                setupInvoiceAdapter(invoiceRefs)
+            }.addOnFailureListener { exception ->
+                Log.e("InvoicesActivity", "Error sorting invoices: ", exception)
+            }
+        } else {
+            Log.e("InvoicesActivity", "No user is authenticated")
+        }
     }
 
     private fun getInvoices() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
             val db = FirebaseFirestore.getInstance()
-            val userInvoicesCollection = db.collection("users").document(userId).collection("invoices")
+            val userInvoicesCollection =
+                db.collection("users").document(userId).collection("invoices")
 
             userInvoicesCollection.addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -69,6 +170,64 @@ class MainActivity : AppCompatActivity() {
 
         invoiceAdapter = InvoiceAdapter(invoiceRefs, onItemClickListener)
         binding.recyclerViewInvoices.adapter = invoiceAdapter
+    }
+
+    private fun showDeleteAccountConfirmationDialog() {
+        val alertDialogBuilder = MaterialAlertDialogBuilder(this).setTitle("ELIMINAR CUENTA")
+        .setMessage("Se va a eliminar la cuenta. ¿Estás seguro? /n Se eliminarán todos los archivos relacionados.")
+        .setIcon(R.drawable.ic_warning)
+        .setPositiveButton("Eliminar") { _, _ ->
+            deleteAccount()
+        }
+        .setNegativeButton("Cancelar", null)
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
+    }
+
+    private fun deleteAccount() {
+        if (currentUser != null) {
+            val userId = currentUser.uid
+            val db = FirebaseFirestore.getInstance()
+            val storage = FirebaseStorage.getInstance()
+            val userStorageRef = storage.reference.child("users/$userId")
+            val userDocRef = db.collection("users").document(userId)
+
+            userStorageRef.delete()
+                .addOnSuccessListener {
+                    Log.d("DeleteAccount", "User storage deleted successfully")
+                    deleteUserDataAndAccount(userDocRef)
+                }
+                .addOnFailureListener { exception ->
+                    if (exception is StorageException && exception.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) {
+                        Log.d("DeleteAccount", "User storage does not exist")
+                        deleteUserDataAndAccount(userDocRef)
+                    } else {
+                        Log.e("DeleteAccount", "Error deleting user storage: ", exception)
+                    }
+                }
+        } else {
+            Log.e("DeleteAccount", "No user is authenticated")
+        }
+    }
+
+    private fun deleteUserDataAndAccount(userDocRef: DocumentReference) {
+        userDocRef.delete()
+            .addOnSuccessListener {
+                Log.d("DeleteAccount", "User data deleted successfully")
+                currentUser?.delete()
+                    ?.addOnCompleteListener { deleteTask ->
+                        if (deleteTask.isSuccessful) {
+                            Log.d("DeleteAccount", "Account deleted successfully")
+                            startActivity(Intent(this, LoginActivity::class.java))
+                            finish()
+                        } else {
+                            Log.e("DeleteAccount", "Error deleting account: ", deleteTask.exception)
+                        }
+                    }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("DeleteAccount", "Error deleting user data: ", exception)
+            }
     }
 
     private fun logout() {
