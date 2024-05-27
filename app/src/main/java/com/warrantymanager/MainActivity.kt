@@ -7,10 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.PopupMenu
-import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
@@ -20,6 +17,12 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
 import com.warrantymanager.databinding.ActivityMainBinding
+
+import android.content.DialogInterface
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import androidx.core.content.ContextCompat
+import com.google.android.material.color.MaterialColors
 
 class MainActivity : AppCompatActivity() {
 
@@ -173,13 +176,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showDeleteAccountConfirmationDialog() {
-        val alertDialogBuilder = MaterialAlertDialogBuilder(this).setTitle("ELIMINAR CUENTA")
-        .setMessage("Se va a eliminar la cuenta. ¿Estás seguro? /n Se eliminarán todos los archivos relacionados.")
-        .setIcon(R.drawable.ic_warning)
-        .setPositiveButton("Eliminar") { _, _ ->
-            deleteAccount()
-        }
-        .setNegativeButton("Cancelar", null)
+        val alertDialogBuilder = MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.delete_account_title))
+            .setMessage(getString(R.string.delete_account_message))
+            .setIcon(R.drawable.ic_warning)
+            .setPositiveButton(getString(R.string.delete_account_positive_button)) { _, _ ->
+                deleteAccount()
+            }
+            .setNegativeButton(getString(R.string.delete_account_negative_button), null)
+
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }

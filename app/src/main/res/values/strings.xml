@@ -34,6 +34,12 @@
     <string name="orders_title">Ordernar</string>
     <string name="user_title">Usuario</string>
 
+    //AlertDialog
+    <string name="delete_account_title">ELIMINACIÓN DE CUENTA</string>
+    <string name="delete_account_message">Se eliminará permanentemente tu cuenta y todos los datos asociados, incluyendo archivos y configuraciones. Esta acción no se puede deshacer. ¿Estás seguro de que deseas continuar?</string>
+    <string name="delete_account_positive_button">ELIMINAR CUENTA</string>
+    <string name="delete_account_negative_button">CANCELAR</string>
+
     invoices_title
 
     //AddInvoicesActivity
