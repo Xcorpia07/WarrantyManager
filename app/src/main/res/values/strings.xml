@@ -84,4 +84,12 @@
     <string name="label_adapter_warranty_date">Garantía hasta: %1$s</string>
     <string name="label_adapter_remaining_warranty">Quedan: %1$d meses</string>
 
+    //EditInvoice
+
+    <string name="button_change_product_image">Cambiar imagen</string>
+    <string name="button_delete_product_image">Eliminar imagen</string>
+    <string name="button_change_invoice_file">Cambiar archivo de factura</string>
+    <string name="button_delete_invoice_file">Eliminar archivo de factura</string>
+    <string name="button_update_product">Actualizar producto</string>
+
 </resources>

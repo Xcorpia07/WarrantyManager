@@ -1,7 +1,9 @@
 package com.warrantymanager
 
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -86,20 +88,35 @@ class InvoiceDetailsActivity : AppCompatActivity() {
     }
 
     private fun openEditInvoiceActivity() {
-        val intent = Intent(this, AddInvoiceActivity::class.java).apply {
+        val intent = Intent(this, EditInvoiceActivity::class.java).apply {
             putExtra("invoiceEditPath", invoiceEditPath)
         }
         startActivity(intent)
     }
 
-    private fun showImageFullScreen(imageUrl: String, productName: String = invoice.productName) {
-        if (imageUrl.isNotEmpty()) {
-            val intent = Intent(this, FullScreenImageActivity::class.java)
-            intent.putExtra("imageUrl", imageUrl)
-            intent.putExtra("productName", productName)
-            startActivity(intent)
+    private fun showImageFullScreen(fileUrl: String, productName: String = invoice.productName) {
+        if (fileUrl.isNotEmpty()) {
+            val storageRef = Firebase.storage.getReferenceFromUrl(fileUrl)
+            storageRef.metadata.addOnSuccessListener { metadata ->
+                val contentType = metadata.contentType
+                if (contentType == "application/pdf") {
+                    val intent = Intent(this, PdfViewerActivity::class.java)
+                    intent.putExtra("fileUrl", fileUrl)
+                    intent.putExtra("productName", productName)
+                    startActivity(intent)
+                } else {
+                    val intent = Intent(this, FullScreenImageActivity::class.java)
+                    intent.putExtra("imageUrl", fileUrl)
+                    intent.putExtra("productName", productName)
+                    startActivity(intent)
+                }
+            }.addOnFailureListener { exception ->
+                Log.e("InvoiceDetailsActivity", "Error getting file metadata: ", exception)
+                // Manejar el error al obtener los metadatos del archivo
+            }
         }
     }
+
 
     private fun showDeleteConfirmationDialog() {
         AlertDialog.Builder(this)

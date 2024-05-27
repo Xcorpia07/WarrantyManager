@@ -67,5 +67,7 @@ dependencies {
     //PhotoView
     implementation ("com.github.chrisbanes:PhotoView:2.0.0")
 
+    //PdfViewPager
+    implementation ("com.github.voghDev:PdfViewPager:1.1.2")
 
 }
