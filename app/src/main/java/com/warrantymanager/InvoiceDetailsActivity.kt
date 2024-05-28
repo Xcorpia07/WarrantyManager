@@ -131,7 +131,6 @@ class InvoiceDetailsActivity : AppCompatActivity() {
                 }
             }.addOnFailureListener { exception ->
                 Log.e("InvoiceDetailsActivity", "Error getting file metadata: ", exception)
-                // Manejar el error al obtener los metadatos del archivo
             }
         }
     }

@@ -151,11 +151,20 @@ class EditInvoiceActivity : AppCompatActivity() {
         }
 
         if (invoice.invoiceFileUrl.isNotEmpty()) {
-
-            Glide.with(this)
-                .load(invoice.invoiceFileUrl)
-                .transform(RoundedCorners(20))
-                .into(binding.imageViewInvoiceFile)
+            val storageRef = Firebase.storage.getReferenceFromUrl(invoice.invoiceFileUrl)
+            storageRef.metadata.addOnSuccessListener { metadata ->
+                val contentType = metadata.contentType
+                if (contentType == "application/pdf") {
+                    binding.imageViewInvoiceFile.setImageResource(R.drawable.ic_placeholder_pdf)
+                } else {
+                    Glide.with(this)
+                        .load(invoice.invoiceFileUrl)
+                        .transform(RoundedCorners(20))
+                        .into(binding.imageViewInvoiceFile)
+                }
+            }.addOnFailureListener { exception ->
+                Log.e("EditInvoiceActivity", "Error getting file metadata: ", exception)
+            }
             binding.buttonAddInvoiceFile.visibility = View.GONE
             binding.buttonReplaceInvoiceFile.visibility = View.VISIBLE
             binding.buttonRemoveInvoiceFile.visibility = View.VISIBLE
