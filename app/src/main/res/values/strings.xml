@@ -45,7 +45,7 @@
     //AddInvoicesActivity
     <string name="hint_manufacturer">Fabricante</string>
     <string name="hint_product_name">Nombre del producto</string>
-    <string name="hint_price">Precio del producto</string>
+    <string name="hint_price">Precio</string>
     <string name="hint_supplier">Proveedor</string>
     <string name="text_purchase_date">Fecha de compra</string>
     <string name="title_purchase_date">Fecha de Compra</string>
@@ -86,10 +86,6 @@
 
     //EditInvoice
 
-    <string name="button_change_product_image">Cambiar imagen</string>
-    <string name="button_delete_product_image">Eliminar imagen</string>
-    <string name="button_change_invoice_file">Cambiar archivo de factura</string>
-    <string name="button_delete_invoice_file">Eliminar archivo de factura</string>
     <string name="button_update_product">Actualizar producto</string>
 
 </resources>

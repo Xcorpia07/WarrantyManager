@@ -26,6 +26,7 @@ class InvoiceDetailsActivity : AppCompatActivity() {
     private lateinit var invoice: Invoice
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     private lateinit var invoiceEditPath: String
+    private lateinit var invoicePath: String
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +34,7 @@ class InvoiceDetailsActivity : AppCompatActivity() {
         binding = ActivityInvoiceDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val invoicePath = intent.getStringExtra("invoicePath")!!
+        invoicePath = intent.getStringExtra("invoicePath")!!
 
 
         val db = FirebaseFirestore.getInstance()
@@ -44,6 +45,24 @@ class InvoiceDetailsActivity : AppCompatActivity() {
                 bindInvoiceData(dateFormat)
                 invoiceEditPath = invoiceRef.path
                 setupClickListeners()
+            }
+            .addOnFailureListener { exception ->
+                Log.e("InvoiceDetailsActivity", "Error getting invoice details: ", exception)
+            }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchInvoiceData()
+    }
+
+    private fun fetchInvoiceData() {
+        val db = FirebaseFirestore.getInstance()
+        val invoiceRef = db.document(invoicePath)
+        invoiceRef.get()
+            .addOnSuccessListener { documentSnapshot ->
+                invoice = documentSnapshot.toObject(Invoice::class.java)!!
+                bindInvoiceData(dateFormat)
             }
             .addOnFailureListener { exception ->
                 Log.e("InvoiceDetailsActivity", "Error getting invoice details: ", exception)
