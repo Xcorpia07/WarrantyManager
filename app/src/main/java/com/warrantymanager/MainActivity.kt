@@ -23,6 +23,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 
 class MainActivity : AppCompatActivity() {
 
@@ -180,10 +181,10 @@ class MainActivity : AppCompatActivity() {
             .setTitle(getString(R.string.delete_account_title))
             .setMessage(getString(R.string.delete_account_message))
             .setIcon(R.drawable.ic_warning)
-            .setPositiveButton(getString(R.string.delete_account_positive_button)) { _, _ ->
+            .setPositiveButton(getString(R.string.delete_account_button)) { _, _ ->
                 deleteAccount()
             }
-            .setNegativeButton(getString(R.string.delete_account_negative_button), null)
+            .setNegativeButton(getString(R.string.cancel_button), null)
 
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
@@ -226,7 +227,12 @@ class MainActivity : AppCompatActivity() {
                             startActivity(Intent(this, LoginActivity::class.java))
                             finish()
                         } else {
-                            Log.e("DeleteAccount", "Error deleting account: ", deleteTask.exception)
+                            if (deleteTask.exception is FirebaseAuthRecentLoginRequiredException) {
+                                // Manejar el error FirebaseAuthRecentLoginRequiredException
+                                showReauthenticationDialog()
+                            } else {
+                                Log.e("DeleteAccount", "Error deleting account: ", deleteTask.exception)
+                            }
                         }
                     }
             }
@@ -234,6 +240,19 @@ class MainActivity : AppCompatActivity() {
                 Log.e("DeleteAccount", "Error deleting user data: ", exception)
             }
     }
+
+    private fun showReauthenticationDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.reauthentication_required_title))
+            .setMessage(getString(R.string.reauthentication_required_message))
+            .setIcon(R.drawable.ic_warning)
+            .setPositiveButton(getString(R.string.reauthenticate_button)) { _, _ ->
+                startActivity(Intent(this, LoginActivity::class.java))
+            }
+            .setNegativeButton(getString(R.string.cancel_button), null)
+            .show()
+    }
+
 
     private fun logout() {
         auth.signOut()

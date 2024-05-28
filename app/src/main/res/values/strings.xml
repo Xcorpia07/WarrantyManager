@@ -37,8 +37,12 @@
     //AlertDialog
     <string name="delete_account_title">ELIMINACIÓN DE CUENTA</string>
     <string name="delete_account_message">Se eliminará permanentemente tu cuenta y todos los datos asociados, incluyendo archivos y configuraciones. Esta acción no se puede deshacer. ¿Estás seguro de que deseas continuar?</string>
-    <string name="delete_account_positive_button">ELIMINAR CUENTA</string>
-    <string name="delete_account_negative_button">CANCELAR</string>
+    <string name="delete_account_button">ELIMINAR CUENTA</string>
+
+    <string name="reauthentication_required_title">REAUTENTICACIÓN REQUERIDA</string>
+    <string name="reauthentication_required_message">Esta operación es sensible y requiere que vuelvas a iniciar sesión. Por favor, inicia sesión nuevamente para continuar.</string>
+    <string name="reauthenticate_button">REAUTENTICAR</string>
+    <string name="cancel_button">CANCELAR</string>
 
     invoices_title
 
