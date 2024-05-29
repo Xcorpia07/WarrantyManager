@@ -60,7 +60,6 @@ class EditInvoiceActivity : AppCompatActivity() {
     private var isInvoiceFileRemoved = false
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEditInvoiceBinding.inflate(layoutInflater)
@@ -103,9 +102,10 @@ class EditInvoiceActivity : AppCompatActivity() {
             updateInvoice()
         }
 
-        resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            handleActivityResult(result.resultCode, requestCode, result.data)
-        }
+        resultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                handleActivityResult(result.resultCode, requestCode, result.data)
+            }
     }
 
     private fun fetchInvoiceData() {
@@ -126,6 +126,30 @@ class EditInvoiceActivity : AppCompatActivity() {
             }
     }
 
+    private fun addProductImageButtonsVisibility(addButton: Boolean) {
+        if (addButton) {
+            binding.buttonAddProductImage.visibility = View.VISIBLE
+            binding.buttonReplaceProductImage.visibility = View.GONE
+            binding.buttonRemoveProductImage.visibility = View.GONE
+        } else {
+            binding.buttonAddProductImage.visibility = View.GONE
+            binding.buttonReplaceProductImage.visibility = View.VISIBLE
+            binding.buttonRemoveProductImage.visibility = View.VISIBLE
+        }
+    }
+
+    private fun addInvoiceFileButtonsVisibility(addButton: Boolean) {
+        if (addButton) {
+            binding.buttonAddInvoiceFile.visibility = View.VISIBLE
+            binding.buttonReplaceInvoiceFile.visibility = View.GONE
+            binding.buttonRemoveInvoiceFile.visibility = View.GONE
+        } else {
+            binding.buttonAddInvoiceFile.visibility = View.GONE
+            binding.buttonReplaceInvoiceFile.visibility = View.VISIBLE
+            binding.buttonRemoveInvoiceFile.visibility = View.VISIBLE
+        }
+    }
+
     private fun bindInvoiceData() {
         binding.editTextProductName.setText(invoice.productName)
         binding.editTextManufacturer.setText(invoice.manufacturer)
@@ -141,13 +165,9 @@ class EditInvoiceActivity : AppCompatActivity() {
                 .load(invoice.productImageUrl)
                 .transform(RoundedCorners(20))
                 .into(binding.imageViewProduct)
-            binding.buttonAddProductImage.visibility = View.GONE
-            binding.buttonReplaceProductImage.visibility = View.VISIBLE
-            binding.buttonRemoveProductImage.visibility = View.VISIBLE
+            addProductImageButtonsVisibility(false)
         } else {
-            binding.buttonAddProductImage.visibility = View.VISIBLE
-            binding.buttonReplaceProductImage.visibility = View.GONE
-            binding.buttonRemoveProductImage.visibility = View.GONE
+            addProductImageButtonsVisibility(true)
         }
 
         if (invoice.invoiceFileUrl.isNotEmpty()) {
@@ -165,13 +185,9 @@ class EditInvoiceActivity : AppCompatActivity() {
             }.addOnFailureListener { exception ->
                 Log.e("EditInvoiceActivity", "Error getting file metadata: ", exception)
             }
-            binding.buttonAddInvoiceFile.visibility = View.GONE
-            binding.buttonReplaceInvoiceFile.visibility = View.VISIBLE
-            binding.buttonRemoveInvoiceFile.visibility = View.VISIBLE
+            addInvoiceFileButtonsVisibility(false)
         } else {
-            binding.buttonAddInvoiceFile.visibility = View.VISIBLE
-            binding.buttonReplaceInvoiceFile.visibility = View.GONE
-            binding.buttonRemoveInvoiceFile.visibility = View.GONE
+            addProductImageButtonsVisibility(true)
         }
     }
 
@@ -180,41 +196,39 @@ class EditInvoiceActivity : AppCompatActivity() {
             when (requestCode) {
                 REQUEST_ATTACH_PDF -> {
                     selectedInvoicePdfUri = data?.data
+                    binding.imageViewInvoiceFile.setImageResource(R.drawable.ic_placeholder_pdf)
+                    addProductImageButtonsVisibility(false)
                     Toast.makeText(this, "PDF seleccionado", Toast.LENGTH_SHORT).show()
                 }
+
                 REQUEST_ATTACH_IMAGE, REQUEST_ATTACH_PRODUCT_IMAGE -> {
                     val uri = data?.data
                     if (requestCode == REQUEST_ATTACH_IMAGE) {
                         selectedInvoiceImageUri = uri
                         binding.imageViewInvoiceFile.setImageURI(selectedInvoiceImageUri)
-                        binding.buttonAddInvoiceFile.visibility = View.GONE
-                        binding.buttonReplaceInvoiceFile.visibility = View.VISIBLE
-                        binding.buttonRemoveInvoiceFile.visibility = View.VISIBLE
+                        addInvoiceFileButtonsVisibility(false)
                         Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
                     } else {
                         selectedProductImageUri = uri
                         binding.imageViewProduct.setImageURI(selectedProductImageUri)
-                        binding.buttonAddProductImage.visibility = View.GONE
-                        binding.buttonReplaceProductImage.visibility = View.VISIBLE
-                        binding.buttonRemoveProductImage.visibility = View.VISIBLE
-                        Toast.makeText(this, "Imagen del producto seleccionada", Toast.LENGTH_SHORT).show()
+                        addProductImageButtonsVisibility(false)
+                        Toast.makeText(this, "Imagen del producto seleccionada", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
+
                 REQUEST_TAKE_PHOTO, REQUEST_TAKE_PRODUCT_PHOTO -> {
-                    val uri = Uri.fromFile(File(if (requestCode == REQUEST_TAKE_PHOTO) currentInvoicePhotoPath else currentProductPhotoPath))
+                    val uri =
+                        Uri.fromFile(File(if (requestCode == REQUEST_TAKE_PHOTO) currentInvoicePhotoPath else currentProductPhotoPath))
                     if (requestCode == REQUEST_TAKE_PHOTO) {
                         selectedInvoiceImageUri = uri
                         binding.imageViewInvoiceFile.setImageURI(selectedInvoiceImageUri)
-                        binding.buttonAddInvoiceFile.visibility = View.GONE
-                        binding.buttonReplaceInvoiceFile.visibility = View.VISIBLE
-                        binding.buttonRemoveInvoiceFile.visibility = View.VISIBLE
+                        addInvoiceFileButtonsVisibility(false)
                         Toast.makeText(this, "Foto tomada", Toast.LENGTH_SHORT).show()
                     } else {
                         selectedProductImageUri = uri
                         binding.imageViewProduct.setImageURI(selectedProductImageUri)
-                        binding.buttonAddProductImage.visibility = View.GONE
-                        binding.buttonReplaceProductImage.visibility = View.VISIBLE
-                        binding.buttonRemoveProductImage.visibility = View.VISIBLE
+                        addProductImageButtonsVisibility(false)
                         Toast.makeText(this, "Foto del producto tomada", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -286,7 +300,10 @@ class EditInvoiceActivity : AppCompatActivity() {
                 val photoFile: File? = try {
                     when (requestCode) {
                         REQUEST_TAKE_PHOTO -> createImageFile { currentInvoicePhotoPath = it }
-                        REQUEST_TAKE_PRODUCT_PHOTO -> createImageFile { currentProductPhotoPath = it }
+                        REQUEST_TAKE_PRODUCT_PHOTO -> createImageFile {
+                            currentProductPhotoPath = it
+                        }
+
                         else -> null
                     }
                 } catch (ex: IOException) {
@@ -307,7 +324,8 @@ class EditInvoiceActivity : AppCompatActivity() {
     }
 
     private fun createImageFile(path: (String) -> Unit): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: String =
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
             "JPEG_${timeStamp}_",
@@ -321,18 +339,15 @@ class EditInvoiceActivity : AppCompatActivity() {
     private fun removeProductImage() {
         selectedProductImageUri = null
         binding.imageViewProduct.setImageResource(R.drawable.ic_product_placeholder)
-        binding.buttonAddProductImage.visibility = View.VISIBLE
-        binding.buttonReplaceProductImage.visibility = View.GONE
-        binding.buttonRemoveProductImage.visibility = View.GONE
+        addProductImageButtonsVisibility(true)
         isProductImageRemoved = true
     }
 
     private fun removeInvoiceFile() {
         selectedInvoicePdfUri = null
         selectedInvoiceImageUri = null
-        binding.buttonAddInvoiceFile.visibility = View.VISIBLE
-        binding.buttonReplaceInvoiceFile.visibility = View.GONE
-        binding.buttonRemoveInvoiceFile.visibility = View.GONE
+        binding.imageViewInvoiceFile.setImageResource(R.drawable.ic_product_placeholder)
+        addInvoiceFileButtonsVisibility(true)
         isInvoiceFileRemoved = true
     }
 
@@ -385,12 +400,14 @@ class EditInvoiceActivity : AppCompatActivity() {
                         handleInvoiceFileUpdate(updatedInvoice, invoiceFileUri)
                     }
                 }
+
                 isProductImageRemoved -> {
                     deleteFileFromFirebase(invoice.productImageUrl) {
                         updatedInvoice.productImageUrl = ""
                         handleInvoiceFileUpdate(updatedInvoice, invoiceFileUri)
                     }
                 }
+
                 else -> {
                     updatedInvoice.productImageUrl = invoice.productImageUrl
                     handleInvoiceFileUpdate(updatedInvoice, invoiceFileUri)
@@ -410,12 +427,14 @@ class EditInvoiceActivity : AppCompatActivity() {
                     updateInvoiceToFirestore(updatedInvoice)
                 }
             }
+
             isInvoiceFileRemoved -> {
                 deleteFileFromFirebase(invoice.invoiceFileUrl) {
                     updatedInvoice.invoiceFileUrl = ""
                     updateInvoiceToFirestore(updatedInvoice)
                 }
             }
+
             else -> {
                 updatedInvoice.invoiceFileUrl = invoice.invoiceFileUrl
                 updateInvoiceToFirestore(updatedInvoice)
@@ -443,7 +462,11 @@ class EditInvoiceActivity : AppCompatActivity() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
             val storageRef = Firebase.storage.reference
-            val fileRef = storageRef.child("users/$userId/$directory/${System.currentTimeMillis()}.${getFileExtension(fileUri)}")
+            val fileRef = storageRef.child(
+                "users/$userId/$directory/${System.currentTimeMillis()}.${
+                    getFileExtension(fileUri)
+                }"
+            )
             fileRef.putFile(fileUri)
                 .addOnSuccessListener {
                     fileRef.downloadUrl.addOnSuccessListener { uri ->
@@ -483,7 +506,13 @@ class EditInvoiceActivity : AppCompatActivity() {
         if (loadingViewBinding.root.parent != null) {
             (loadingViewBinding.root.parent as? ViewGroup)?.removeView(loadingViewBinding.root)
         }
-        addContentView(loadingViewBinding.root, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        addContentView(
+            loadingViewBinding.root,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
     }
 
     private fun hideLoadingView() {

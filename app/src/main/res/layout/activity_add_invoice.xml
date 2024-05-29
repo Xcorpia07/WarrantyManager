@@ -21,7 +21,7 @@
             app:shapeAppearanceOverlay="@style/radius"/>
 
         <com.google.android.material.button.MaterialButton
-            style="@style/Widget.Material3.Button.Icon"
+            style="@style/Widget.App.Button"
             android:id="@+id/buttonAddImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -118,11 +118,10 @@
                 android:textSize="18sp"
                 app:simpleItems="@array/warranty_periods" />
 
-
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
-            style="@style/Widget.Material3.Button.Icon"
+            style="@style/Widget.App.Button"
             android:id="@+id/buttonAttachDocument"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -135,7 +134,7 @@
             android:textSize="18sp" />
 
         <com.google.android.material.button.MaterialButton
-            style="@style/Widget.Material3.Button.Icon"
+            style="@style/Widget.App.Button"
             android:id="@+id/buttonSaveInvoice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -146,7 +145,6 @@
             app:iconGravity="textStart"
             app:iconSize="22dp"
             android:textSize="18sp" />
-
 
     </LinearLayout>
 

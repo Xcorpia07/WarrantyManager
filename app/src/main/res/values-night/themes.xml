@@ -1,10 +1,16 @@
 <resources>
-    <style name="Base.Theme.WarrantyManager" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.WarrantyManager" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:textColorPrimary">@color/colorText</item>
+        <item name="android:textColorSecondary">@color/colorTextSecondary</item>
 
+        <item name="materialButtonStyle">@style/Widget.App.Button</item>
     </style>
 
     <style name="PDFViewPagerLightTheme" parent="Theme.Material3.Light.NoActionBar">
-
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>

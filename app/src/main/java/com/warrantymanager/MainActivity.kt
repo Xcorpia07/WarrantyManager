@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, AddInvoiceActivity::class.java))
         }
 
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(binding.toolbar);
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

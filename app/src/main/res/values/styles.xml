@@ -7,17 +7,39 @@
         <item name="cornerSizeBottomRight">15dp</item>
     </style>
 
-    <style name="TextAppearance.App.CollapsingToolbarTitle" parent="TextAppearance.MaterialComponents.Headline6">
-        <item name="android:textStyle">bold</item>
-        <item name="android:textSize">25sp</item>
+    <style name="Widget.App.Toolbar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="titleTextColor">@color/colorBackground</item>
+        <item name="subtitleTextColor">@color/colorTextSecondary</item>
     </style>
+
+    <style name="TextAppearance.App.Toolbar.Title" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/colorOnPrimary</item>
+    </style>
+
+    <style name="TextAppearance.App.Toolbar.Subtitle" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/colorOnPrimary</item>
+    </style>
+
 
     <style name="TextAppearance.App.Subtitle" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/colorText</item>
     </style>
 
 
-    <style name="TextAppearance.App.Link" parent="TextAppearance.MaterialComponents.Body1">
+    <style name="Widget.App.Button" parent="Widget.Material3.Button.Icon">
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorBackground</item>
+        <item name="iconTint">@color/colorBackground</item>
+        <item name="rippleColor">@color/colorPrimaryDark</item>
+        <item name="tint">@color/colorBackground</item>
+    </style>
+
+
+    <style name="Widget.App.TextButton" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:textColor">@color/colorAccent</item>
+        <item name="iconTint">@color/colorAccent</item>
+        <item name="rippleColor">@color/colorAccent</item>
         <item name="android:textStyle">bold</item>
     </style>
 
