@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/sort_by_date"
+        android:id="@+id/sort_by_warranty_date"
         android:title="Ordenar por fecha" />
     <item
         android:id="@+id/sort_by_name"

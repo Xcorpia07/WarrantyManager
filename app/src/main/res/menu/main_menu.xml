@@ -5,20 +5,23 @@
         android:id="@+id/invoicesMenuItem"
         android:icon="@drawable/ic_list"
         android:title="@string/invoices_title"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom"
+        android:iconTint="@color/colorBackground"/>
     />
     <item
         android:id="@+id/orderMenuItem"
         android:icon="@drawable/ic_filter_list"
         android:title="@string/orders_title"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom"
+        android:iconTint="@color/colorBackground"/>
     />
 
     <item
         android:id="@+id/userMenuItem"
         android:icon="@drawable/ic_user_manage"
         android:title="@string/user_title"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom"
+        android:iconTint="@color/colorBackground"/>
     />
 
 </menu>

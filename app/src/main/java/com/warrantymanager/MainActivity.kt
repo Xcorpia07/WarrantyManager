@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         popupMenu.menuInflater.inflate(R.menu.sort_menu, popupMenu.menu)
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.sort_by_date -> {
+                R.id.sort_by_warranty_date -> {
                     sortInvoices(InvoiceSortOrder.DATE)
                     true
                 }
@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity() {
             val userInvoicesCollection = db.collection("users").document(userId).collection("invoices")
 
             val query = when (sortOrder) {
-                InvoiceSortOrder.DATE -> userInvoicesCollection.orderBy("purchaseDate", Query.Direction.DESCENDING)
+                InvoiceSortOrder.DATE -> userInvoicesCollection.orderBy("warrantyDate", Query.Direction.DESCENDING)
                 InvoiceSortOrder.NAME -> userInvoicesCollection.orderBy("productName", Query.Direction.ASCENDING)
                 InvoiceSortOrder.PRICE -> userInvoicesCollection.orderBy("price", Query.Direction.DESCENDING)
             }
