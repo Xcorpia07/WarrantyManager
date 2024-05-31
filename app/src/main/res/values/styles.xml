@@ -9,7 +9,8 @@
 
     <style name="Widget.App.Toolbar" parent="Widget.MaterialComponents.Toolbar">
         <item name="android:background">@color/colorPrimary</item>
-        <item name="titleTextColor">@color/colorBackground</item>
+        <item name="titleTextColor">@color/white</item>
+        <item name="android:iconTint">@color/white</item>
         <item name="subtitleTextColor">@color/colorTextSecondary</item>
     </style>
 

@@ -7,8 +7,8 @@
     <color name="colorPrimaryDark">#4527A0</color>
     <color name="colorAccent">#AD1457</color>
     <color name="colorBackground">#FFFFFF</color>
-    <color name="colorText">#212121</color>
-    <color name="colorTextSecondary">#757575</color>
+    <color name="colorText">#FF000000</color>
+    <color name="colorTextSecondary">#FF000000</color>
 
     <color name="colorPrimaryLight">#7E57C2</color>
     <color name="colorOnPrimary">#FFFFFF</color>
