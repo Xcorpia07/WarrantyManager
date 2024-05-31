@@ -13,7 +13,7 @@ Esta aplicación móvil permite a los usuarios gestionar garantías de productos
 - Notificaciones de vencimiento de garantías.
 - Visualización y compartición de documentos.
 
-## Tecnologías Utilizadas``
+## Tecnologías Utilizadas
 
 - **Kotlin:** Lenguaje de programación para Android.
 - **Android Studio:** IDE oficial para desarrollo de Android.
